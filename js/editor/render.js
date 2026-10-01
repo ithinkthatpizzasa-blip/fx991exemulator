@@ -127,8 +127,8 @@ function drawRadical(bm, x, top, bottom, size) {
 }
 
 function parens(bm, x, top, bottom, left) {
-  if (left) { bm.set(x + 1, top); bm.vline(x, top + 1, bottom - 1); bm.set(x + 1, bottom); }
-  else { bm.set(x, top); bm.vline(x + 1, top + 1, bottom - 1); bm.set(x, bottom); }
+  if (left) { bm.set(x + 2, top); bm.set(x + 1, top + 1); bm.vline(x, top + 2, bottom - 2); bm.set(x + 1, bottom - 1); bm.set(x + 2, bottom); }
+  else { bm.set(x, top); bm.set(x + 1, top + 1); bm.vline(x + 2, top + 2, bottom - 2); bm.set(x + 1, bottom - 1); bm.set(x, bottom); }
 }
 
 function parenWrap(inner, size) {
@@ -146,14 +146,14 @@ function parenWrap(inner, size) {
     return b;
   }
   const b = {
-    w: inner.w + 6, a: a + 1, d: d + 1,
+    w: inner.w + 8, a: a + 1, d: d + 1,
     draw(bm, x, base) {
       parens(bm, x, base - a, base + d, true);
-      inner.draw(bm, x + 3, base);
-      parens(bm, x + 3 + inner.w, base - a, base + d, false);
+      inner.draw(bm, x + 4, base);
+      parens(bm, x + 4 + inner.w, base - a, base + d, false);
     },
   };
-  withCursor(b, inner, 3, 0);
+  withCursor(b, inner, 4, 0);
   return b;
 }
 
@@ -256,7 +256,7 @@ function layoutTemplate(it, size, opts, curf) {
     case 'integ': {
       const f = slotBox(it, 0, size, opts, curf);
       const la = slotBox(it, 1, 'S', opts, curf), lb = slotBox(it, 2, 'S', opts, curf);
-      const A = Math.max(f.a, m.a) + 3, Dd = Math.max(f.d, 2) + 3;
+      const A = Math.max(f.a, m.a) + 4, Dd = Math.max(f.d, 2) + 4;
       const lw = Math.max(la.w, lb.w);
       const dx = textBox('d𝑥', size);
       const bBase = -A + lb.a, aBase = Dd - la.d;

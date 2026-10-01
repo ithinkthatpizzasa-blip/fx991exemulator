@@ -126,6 +126,8 @@ class ArrayMode {
 
   // ----- keys -----
   key(action, key) {
+    // in these modes Abs is entered as a function closed with ")" (manual p.27, p.29)
+    if (action === 'p:abs') action = 't:Abs(';
     if (this.err) {
       if (action === 'AC' || action === 'LEFT' || action === 'RIGHT') this.err = null;
       return true;
@@ -221,7 +223,7 @@ class ArrayMode {
     bm.vline(rx, top, bot); bm.hline(rx - 2, rx, top); bm.hline(rx - 2, rx, bot);
     for (let r = 0; r < R; r++) {
       for (let c = 0; c < Cc; c++) {
-        const s = cellText(this.cell(v, r, c), cw - 3, this.calc);
+        const s = cellText(this.cell(v, r, c), cw - 3, this.calc, { exact: false });
         const x = gx + c * cw, y = gy + r * rh;
         const w = textW(s);
         bm.text(s, x + cw - 2 - w, y + 1, 'S');
@@ -253,7 +255,7 @@ class ArrayMode {
       const rows = [];
       for (let r = 0; r < R; r++) {
         const row = [];
-        for (let c = 0; c < Cc; c++) row.push(cellText(this.cell(v, r, c), 999, this.calc));
+        for (let c = 0; c < Cc; c++) row.push(cellText(this.cell(v, r, c), 999, this.calc, { exact: false }).replace(/−/g, '-'));
         rows.push(row.join(','));
       }
       return '[' + rows.join(';') + ']';

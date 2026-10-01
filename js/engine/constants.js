@@ -84,7 +84,7 @@ export const CONV_CATEGORIES = [
     ['J▶cal', 'div', '4.1855'], ['cal▶J', 'mul', '4.1855'],
   ]],
   ['Power', [['hp▶kW', 'mul', '0.745699872'], ['kW▶hp', 'div', '0.745699872']]],
-  ['Temperature', [['°F▶°C', 'F2C'], ['°C▶°F', 'C2F']]],
+  ['Temperature', [['°F▶°C', 'F2C', null], ['°C▶°F', 'C2F', null]]],
 ];
 
 export const CONVS = {};

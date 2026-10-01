@@ -94,6 +94,7 @@ export function operandEnd(arr, idx) {
 export class Editor {
   constructor(line = false) {
     this.line = line;
+    this.wrap = true; // cursor wraps around at the ends of the expression
     this.clear();
   }
   clear() {
@@ -244,7 +245,7 @@ export class Editor {
     const p = this.parentTemplate();
     if (!p) {
       // wrap to end
-      this.idx = this.root.length;
+      if (this.wrap) this.idx = this.root.length;
       return;
     }
     if (p.slot > 0) {
@@ -269,7 +270,7 @@ export class Editor {
     }
     const p = this.parentTemplate();
     if (!p) {
-      this.idx = 0;
+      if (this.wrap) this.idx = 0;
       return;
     }
     if (p.slot < p.item.s.length - 1) {

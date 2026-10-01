@@ -607,7 +607,7 @@ function drawPromptLine(bm, flow, name, y = 48) {
     let items;
     try { items = formatValueLines(calc.mem.vars[name] || ZERO_R, st)[0]; } catch (e) { items = [X('0')]; }
     const box = layoutList(items, 'L', { line: true });
-    box.draw(bm, 192 - box.w, y + 10);
+    box.draw(bm, lw, y + 10);
   }
   bm.invert(0, y - 1, 192, 15);
 }

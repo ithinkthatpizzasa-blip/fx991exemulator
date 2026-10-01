@@ -265,6 +265,8 @@ export class SheetMode {
   }
   openFill(kind) {
     const f1 = new Editor(true), f2 = new Editor(true);
+    f1.wrap = false;
+    f2.wrap = false;
     const name = colName(this.cc) + (this.cr + 1);
     for (const ch of name + ':' + name) f2.insertToken(ch === ':' ? ':' : /[A-E]/.test(ch) ? 'v' + ch : ch);
     f2.idx = 0;

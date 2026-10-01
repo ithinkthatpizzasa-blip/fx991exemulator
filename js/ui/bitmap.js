@@ -61,6 +61,14 @@ function getGlyph(font, ch) {
   return g;
 }
 
+// tiny 3x5 digits for superscripts inside small-font text
+const MINI = {
+  '0': ['###', '#.#', '#.#', '#.#', '###'], '1': ['.#.', '##.', '.#.', '.#.', '###'], '2': ['##.', '..#', '.#.', '#..', '###'],
+  '3': ['##.', '..#', '.#.', '..#', '##.'], '4': ['#.#', '#.#', '###', '..#', '..#'], '5': ['###', '#..', '##.', '..#', '##.'],
+  '6': ['.##', '#..', '###', '#.#', '###'], '7': ['###', '..#', '.#.', '.#.', '.#.'], '8': ['###', '#.#', '###', '#.#', '###'],
+  '9': ['###', '#.#', '###', '..#', '##.'], '−': ['...', '...', '###', '...', '...'], '-': ['...', '...', '###', '...', '...'],
+};
+
 export class Bitmap {
   constructor(w = LCD_W, h = LCD_H) {
     this.w = w;
@@ -122,6 +130,12 @@ export class Bitmap {
     const units = parseText(str);
     for (const u of units) {
       let f = font, yy = y;
+      if (u.mode === 'sup' && font === 'S' && MINI[u.ch]) {
+        const g = MINI[u.ch];
+        for (let r = 0; r < 5; r++) for (let i = 0; i < 3; i++) if (g[r][i] === '#') this.set(cx + i, y + r, v);
+        cx += 4;
+        continue;
+      }
       if (u.mode === 'sup') { f = 'S'; yy = font === 'L' ? y - 1 : y - 3; }
       else if (u.mode === 'sub') { f = 'S'; yy = font === 'L' ? y + 6 : y + 3; }
       if (u.ch === ' ') { cx += font === 'L' ? 4 : 3; continue; }
@@ -154,6 +168,7 @@ export function textWidth(str, font = 'L') {
   for (const u of parseText(str)) {
     const f = u.mode === 'n' ? font : 'S';
     if (u.ch === ' ') { w += font === 'L' ? 4 : 3; continue; }
+    if (u.mode === 'sup' && font === 'S' && MINI[u.ch]) { w += 4; continue; }
     const g = getGlyph(f, u.ch);
     w += (g ? g.w : 0) + 1;
   }

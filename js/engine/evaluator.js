@@ -217,7 +217,7 @@ function* ev0(n, c) {
     case 'root': {
       const k = realArg(yield* ev(n.n, c));
       const a = realArg(yield* ev(n.a, c));
-      return F.root(k, a);
+      return markLd(F.root(k, a));
     }
     case 'fn': return yield* evFn(n, c);
     case 'based': throw new CalcError('Syntax');
@@ -295,7 +295,21 @@ function* evPost(n, c) {
 
 const HEAVY = new Set(['int(', 'diff(', 'sum(', 'Pol(', 'Rec(', 'RanInt(']);
 
+// results of these functions are not "fractions" for LineI/LineO output
+const KEEP_FRACTION = new Set(['Abs(', 'Rnd(', 'ReP(', 'ImP(', 'Conjg(', 'Det(', 'Trn(', 'Identity(', 'RanInt(', 'Min(', 'Max(', 'Mean(', 'Sum(', 'sum(']);
+function markLd(v) {
+  if (v instanceof Real) { const r = new Real(v.d, v.x); r.dms = v.dms; r.ld = true; return r; }
+  if (v instanceof Complex) return new Complex(markLd(v.re), markLd(v.im));
+  return v;
+}
+
 function* evFn(n, c) {
+  const v = yield* evFn0(n, c);
+  if (KEEP_FRACTION.has(n.f) || (v && v.pair)) return v;
+  return markLd(v);
+}
+
+function* evFn0(n, c) {
   const f = n.f;
   const args = n.args;
   if (f === 'int(' || f === 'diff(' || f === 'sum(') return yield* evCalculus(n, c);

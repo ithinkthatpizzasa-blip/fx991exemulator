@@ -12,7 +12,7 @@ const NAMES = {
   'S⇔D': 'sd', SD: 'sd', 'M+': 'mplus', Ans: 'ans', ans: 'ans', '×10x': 'exp', EXP: 'exp', '(-)': 'neg', '(−)': 'neg', neg: 'neg',
   "°'\"": 'dms', DMS: 'dms', 'x-1': 'inv', 'x⁻¹': 'inv', inv: 'inv', sin: 'sin', cos: 'cos', tan: 'tan', log: 'log', 'log▫▫': 'log', ln: 'ln',
   'x²': 'sq', sq: 'sq', 'x^': 'pow', pow: 'pow', '√': 'sqrt', sqrt: 'sqrt', frac: 'frac', '▭': 'frac', x: 'xvar', '∫': 'integ', integ: 'integ',
-  '▲': 'up', '▼': 'down', '◀': 'left', '▶': 'right', up: 'up', down: 'down', left: 'left', right: 'right',
+  ':': ['alpha', 'integ'], '▲': 'up', '▼': 'down', '◀': 'left', '▶': 'right', up: 'up', down: 'down', left: 'left', right: 'right',
 };
 
 export function newCalc(setup = {}) {
@@ -29,6 +29,7 @@ export function press(calc, seq) {
   for (const tok of seq.trim().split(/\s+/)) {
     if (!tok) continue;
     let k = NAMES[tok];
+    if (Array.isArray(k)) { for (const kk of k) { calc.press(kk); calc.render(); } continue; }
     if (!k) {
       if (/^[\d.]+$/.test(tok)) { for (const ch of tok) { calc.press(NAMES[ch]); calc.render(); } continue; }
       k = tok; // raw key id
