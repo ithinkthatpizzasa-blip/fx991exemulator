@@ -180,6 +180,8 @@ export function buildCalculator(face, onKey) {
 }
 
 function buildDpad(face, keys) {
+  // Rounded-diamond frame with four separate brushed-metal pads (wide up/down
+  // arcs, smaller left/right pads) around a dark centre, as in the reference photo.
   const NS = 'http://www.w3.org/2000/svg';
   const W = 268, H = 206;
   const s = document.createElementNS(NS, 'svg');
@@ -187,13 +189,12 @@ function buildDpad(face, keys) {
   s.setAttribute('class', 'dpad');
   Object.assign(s.style, box(284, 653, W, H));
   const cx = W / 2, cy = H / 2;
-  const shape = (k, ky = k) => {
-    // rounded diamond scaled by k (ky vertically) around the centre
-    const rx = (W / 2 - 2) * k, ry = (H / 2 - 2) * ky;
-    const p = (x, y) => `${(cx + x).toFixed(1)},${(cy + y).toFixed(1)}`;
-    return `M${p(0, -ry)} C${p(rx * 0.3, -ry)} ${p(rx * 0.62, -ry * 0.62)} ${p(rx * 0.86, -ry * 0.34)} C${p(rx * 1.02, -ry * 0.15)} ${p(rx * 1.02, ry * 0.15)} ${p(rx * 0.86, ry * 0.34)} C${p(rx * 0.62, ry * 0.62)} ${p(rx * 0.3, ry)} ${p(0, ry)} C${p(-rx * 0.3, ry)} ${p(-rx * 0.62, ry * 0.62)} ${p(-rx * 0.86, ry * 0.34)} C${p(-rx * 1.02, ry * 0.15)} ${p(-rx * 1.02, -ry * 0.15)} ${p(-rx * 0.86, -ry * 0.34)} C${p(-rx * 0.62, -ry * 0.62)} ${p(-rx * 0.3, -ry)} ${p(0, -ry)} Z`;
-  };
-  const outer = shape(1), ringOut = shape(0.9), ringIn = shape(0.56, 0.3);
+  const p = (x, y) => `${(cx + x).toFixed(1)},${(cy + y).toFixed(1)}`;
+  const diamond = (rx, ry) => `M${p(0, -ry)} C${p(rx * 0.45, -ry)} ${p(rx * 0.72, -ry * 0.62)} ${p(rx * 0.9, -ry * 0.3)} C${p(rx * 1.02, -ry * 0.1)} ${p(rx * 1.02, ry * 0.1)} ${p(rx * 0.9, ry * 0.3)} C${p(rx * 0.72, ry * 0.62)} ${p(rx * 0.45, ry)} ${p(0, ry)} C${p(-rx * 0.45, ry)} ${p(-rx * 0.72, ry * 0.62)} ${p(-rx * 0.9, ry * 0.3)} C${p(-rx * 1.02, ry * 0.1)} ${p(-rx * 1.02, -ry * 0.1)} ${p(-rx * 0.9, -ry * 0.3)} C${p(-rx * 0.72, -ry * 0.62)} ${p(-rx * 0.45, -ry)} ${p(0, -ry)} Z`;
+  const rhomb = (rx, ry, r = 6) => `M${p(-rx + r, -r * 0.6)} L${p(-r, -ry + r * 0.6)} Q${p(0, -ry)} ${p(r, -ry + r * 0.6)} L${p(rx - r, -r * 0.6)} Q${p(rx, 0)} ${p(rx - r, r * 0.6)} L${p(r, ry - r * 0.6)} Q${p(0, ry)} ${p(-r, ry - r * 0.6)} L${p(-rx + r, r * 0.6)} Q${p(-rx, 0)} ${p(-rx + r, -r * 0.6)} Z`;
+  const frame = diamond(W / 2 - 1, H / 2 - 1);
+  const padOuter = diamond(W / 2 - 22, H / 2 - 20);
+  const centre = rhomb(68, 42, 8);
   const sectors = {
     up: `M${cx},${cy} L0,0 L${W},0 Z`,
     right: `M${cx},${cy} L${W},0 L${W},${H} Z`,
@@ -201,21 +202,22 @@ function buildDpad(face, keys) {
     left: `M${cx},${cy} L0,${H} L0,0 Z`,
   };
   let html = `<defs>
-    <linearGradient id="dpg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fbfbfb"/><stop offset=".35" stop-color="#c9c9c9"/>
-      <stop offset=".55" stop-color="#f2f2f2"/><stop offset=".8" stop-color="#a5a5a5"/><stop offset="1" stop-color="#e3e3e3"/>
-    </linearGradient>
-    <radialGradient id="dpc" cx=".5" cy=".4" r=".6"><stop offset="0" stop-color="#2a2a2c"/><stop offset="1" stop-color="#0d0d0e"/></radialGradient>`;
+    <radialGradient id="dpm" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="135">
+      <stop offset=".3" stop-color="#8f8f8f"/><stop offset=".48" stop-color="#f6f6f6"/>
+      <stop offset=".66" stop-color="#d6d6d6"/><stop offset=".8" stop-color="#f0f0f0"/><stop offset="1" stop-color="#8a8a8a"/>
+    </radialGradient>
+    <linearGradient id="dpf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#44444a"/><stop offset=".5" stop-color="#1c1c1f"/><stop offset="1" stop-color="#2c2c30"/></linearGradient>
+    <clipPath id="dp-frame"><path d="${padOuter}"/></clipPath>`;
   for (const [k, d] of Object.entries(sectors)) html += `<clipPath id="dp-${k}"><path d="${d}"/></clipPath>`;
-  html += `</defs><path d="${outer}" fill="#141416" stroke="#3a3a3d" stroke-width="2"/>`;
-  for (const [k] of Object.entries(sectors)) {
-    html += `<g class="arm" data-key="${k}"><g clip-path="url(#dp-${k})"><path class="silver" d="${ringOut} ${ringIn}" fill="url(#dpg)" fill-rule="evenodd"/></g><path d="${sectors[k]}" fill="transparent"/></g>`;
+  html += `</defs><path d="${frame}" fill="url(#dpf)" stroke="#050505" stroke-width="3"/>
+    <path d="${padOuter}" fill="#0c0c0d"/>`;
+  for (const k of Object.keys(sectors)) {
+    html += `<g class="arm" data-key="${k}"><g clip-path="url(#dp-${k})"><path class="silver" d="${padOuter} ${centre}" fill="url(#dpm)" fill-rule="evenodd"/></g><path d="${sectors[k]}" fill="transparent"/></g>`;
   }
-  // dark gaps between the four arms
-  const dx = W / 2, dy = H / 2;
-  html += `<clipPath id="dp-outer"><path d="${ringOut}"/></clipPath>`;
-  html += `<path clip-path="url(#dp-outer)" d="M${cx - dx},${cy - dy} L${cx + dx},${cy + dy} M${cx + dx},${cy - dy} L${cx - dx},${cy + dy}" stroke="#141416" stroke-width="13" pointer-events="none"/>`;
-  html += `<path d="${ringIn}" fill="url(#dpc)" pointer-events="none"/>`;
+  // black gaps separating the pads + dark rim inside the frame
+  html += `<g clip-path="url(#dp-frame)" pointer-events="none"><path d="M0,0 L${W},${H} M${W},0 L0,${H}" stroke="#0c0c0d" stroke-width="15"/></g>
+    <path d="${padOuter}" fill="none" stroke="#0c0c0d" stroke-width="4" pointer-events="none"/>
+    <path d="${centre}" fill="#0c0c0d" stroke="#0c0c0d" stroke-width="6" stroke-linejoin="round" pointer-events="none"/>`;
   s.innerHTML = html;
   face.appendChild(s);
   for (const g of s.querySelectorAll('.arm')) {
