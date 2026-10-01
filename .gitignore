@@ -1,0 +1,8 @@
+# dev artefacts
+tools/out/
+node_modules/
+*.log
+.DS_Store
+# reference material (Casio manual / photo) must not be published
+reference/*
+!reference/README.md
