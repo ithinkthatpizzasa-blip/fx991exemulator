@@ -104,7 +104,8 @@ The running version is shown in the ⚙ panel and printed in the console.
 
 1. On GitHub open the repository → **Settings → Pages**.
 2. Under **Build and deployment → Source**, choose **GitHub Actions**.
-3. Push to the default branch (or re-run the *Test and deploy* workflow from the **Actions** tab).
+3. Push to the default branch (or re-run the *Test and deploy* workflow from the **Actions** tab —
+   until step 2 is done its *deploy* job fails with "Get Pages site failed", while the *test* job passes).
    The workflow runs the test suite and publishes only the app files (`index.html`, `manifest.json`,
    `sw.js`, `css/`, `js/`, `fonts/`, `icons/`).
 
