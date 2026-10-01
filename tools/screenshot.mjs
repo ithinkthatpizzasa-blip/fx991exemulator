@@ -22,6 +22,8 @@ for (const k of keys) {
 }
 await page.waitForTimeout(300);
 await page.screenshot({ path: out });
+const rect = await page.evaluate(() => { const r = document.getElementById('calc').getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
+console.log('RECT ' + JSON.stringify(rect));
 console.log(logs.join('\n'));
 await browser.close();
 srv.close();

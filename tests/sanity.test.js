@@ -84,13 +84,19 @@ test('every key in every mode renders without throwing', () => {
     'mul', 'div', 'k1', 'k2', 'k3', 'add', 'sub', 'k0', 'dot', 'exp', 'ans', 'eq'];
   let seed = 7;
   const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  const errors = [];
+  const orig = console.error;
+  console.error = (e) => errors.push(e && e.stack ? e.stack.split('\n').slice(0, 3).join(' | ') : String(e));
+  try {
   for (const mode of ['calc', 'cmplx', 'basen', 'matrix', 'vector', 'stat', 'dist', 'sheet', 'table', 'eqn', 'ineq', 'ratio']) {
     const c = newCalc({ mode });
-    for (let i = 0; i < 400; i++) {
+    for (let i = 0; i < 1500; i++) {
       const k = keys[Math.floor(rnd() * keys.length)];
       if (k === 'menu' && rnd() < 0.7) continue;
       c.press(k);
       c.render();
     }
   }
+  } finally { console.error = orig; }
+  assert.deepEqual([...new Set(errors)], []);
 });

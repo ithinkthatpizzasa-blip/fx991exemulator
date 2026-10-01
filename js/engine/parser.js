@@ -23,9 +23,12 @@ function flatten(items, opts) {
   return out;
 }
 
+const MAX_DEPTH = 24; // nesting limit of the calculator's command stack
+
 class P {
   constructor(items, opts = {}) {
     this.opts = opts;
+    this.depth = opts.depth || 0;
     this.toks = flatten(items, opts);
     this.i = 0;
     this.last = items.length ? items[items.length - 1] : null;
@@ -72,7 +75,14 @@ class P {
     let a = this.dot();
     for (;;) {
       const t = this.peek();
-      if (t && t.k === 'op' && (t.id === '×' || t.id === '÷')) { this.next(); a = { k: 'bin', op: t.id, a, b: this.dot(), ref: t.ref }; } else return a;
+      if (t && t.k === 'op' && (t.id === '×' || t.id === '÷')) {
+        this.next();
+        const i0 = this.i;
+        const b = this.dot();
+        // manual p.8: 6÷2(1+2) is calculated (and shown) as 6÷(2(1+2))
+        if (t.id === '÷' && b.k === 'bin' && b.op === 'imul' && this.autoParens) this.autoParens.push([i0, this.i]);
+        a = { k: 'bin', op: t.id, a, b, ref: t.ref };
+      } else return a;
     }
   }
   dot() {
@@ -113,6 +123,10 @@ class P {
   }
   unary() {
     const t = this.peek();
+    if (t && this.opts.baseN && t.k === 'op' && t.id === '-') {
+      this.next();
+      return { k: 'neg', a: this.unary(), ref: t.ref };
+    }
     if (t && t.k === 'neg') {
       this.next();
       const tt = T[t.id];
@@ -158,7 +172,7 @@ class P {
       if (t.k === 'powpost') {
         this.next();
         if (!t.exp.length) throw syn(t.ref);
-        const b = sub(t.exp, this.opts);
+        const b = sub(t.exp, this.opts, this.depth + 1);
         a = { k: 'pow', a, b, ref: t.ref };
         continue;
       }
@@ -279,6 +293,15 @@ class P {
   primary() {
     const t = this.peek();
     if (!t) throw syn(this.last);
+    if (t.k === 'lp' || t.k === 'pre' || t.k === 'atom') {
+      this.depth++;
+      if (this.depth > MAX_DEPTH) throw new CalcError('Stack', t.ref);
+      try { return this.primary0(); } finally { this.depth--; }
+    }
+    return this.primary0();
+  }
+  primary0() {
+    const t = this.peek();
     if (t.k === 'num') return this.number();
     if (this.opts.cells && this.isCellStart()) return this.cell();
     if (t.k === 'lp') {
@@ -299,7 +322,7 @@ class P {
     }
     if (t.k === 'atom') {
       this.next();
-      return atomNode(t, this.opts);
+      return atomNode(t, this.opts, this.depth);
     }
     throw syn(t.ref);
   }
@@ -316,26 +339,26 @@ function valNode(t) {
   return { k: 'sym', id, ref: t.ref }; // Ans, π, e, i, Ran#
 }
 
-function sub(items, opts) {
+function sub(items, opts, depth = 0) {
   if (!items.length) throw syn(null);
-  const p = new P(items, { ...opts, forceBase: undefined });
+  const p = new P(items, { ...opts, forceBase: undefined, depth });
   const e = p.expr();
   if (!p.eof()) throw p.errAt(p.peek());
   return e;
 }
 
-function slotExpr(tok, k, opts) {
+function slotExpr(tok, k, opts, depth) {
   const items = tok.slots[k];
   if (!items.length) {
     const e = syn(tok.ref);
     e.slot = [tok.ref, k];
     throw e;
   }
-  return sub(items, opts);
+  return sub(items, opts, depth);
 }
 
-function atomNode(t, opts) {
-  const a = (k) => slotExpr(t, k, opts);
+function atomNode(t, opts, depth) {
+  const a = (k) => slotExpr(t, k, opts, depth);
   const ref = t.ref;
   switch (t.tpl) {
     case 'frac': return { k: 'frac', a: a(0), b: a(1), ref };
@@ -385,6 +408,7 @@ export function parseStatement(items, opts = {}) {
 export function parseExpr(items, opts = {}) {
   if (!items.length) throw syn(null);
   const p = new P(items, opts);
+  if (opts.autoParens) p.autoParens = opts.autoParens;
   const e = p.expr();
   if (!p.eof()) {
     const t = p.peek();

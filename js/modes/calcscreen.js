@@ -284,7 +284,9 @@ export class CalcScreen {
       return;
     }
     let prog;
-    try { prog = parseProgram(items, this.parseOpts()); } catch (e) { this.showError(e); return; }
+    const auto = [];
+    try { prog = parseProgram(items, { ...this.parseOpts(), autoParens: auto }); } catch (e) { this.showError(e); return; }
+    if (auto.length && prog.length === 1 && prog[0].k !== 'eq') this.pendingParens = auto;
     this.res = { items: cloneItems(items), prog, idx: -1, value: null, disp: { approx: !!opts.approx }, store: opts.store, mplus: opts.mplus };
     this.rscroll = 0;
     this.runStatement(0);
@@ -322,6 +324,18 @@ export class CalcScreen {
     res.value = v;
     res.pending = !last;
     if (!this.res.handled) this.state = 'result';
+    if (last && this.pendingParens) {
+      // show the automatically inserted parentheses in the expression
+      const ed = this.editor;
+      for (const [i0, i1] of this.pendingParens.sort((p, q) => q[0] - p[0])) {
+        ed.root.splice(i1, 0, { t: 'c', v: ')' });
+        ed.root.splice(i0, 0, { t: 'c', v: '(' });
+      }
+      res.items = cloneItems(ed.root);
+      ed.idx = ed.root.length;
+      ed.path = [];
+    }
+    this.pendingParens = null;
     if (last) {
       this.history.push({ items: res.items, value: v, disp: res.disp, store: res.store, mplus: res.mplus });
       if (this.history.length > 40) this.history.shift();

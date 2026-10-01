@@ -6,8 +6,13 @@ const U = (n) => `${(n * 100 / 841).toFixed(4)}cqw`;
 // ---------- glyph helpers (inline SVG so they never depend on system fonts) ----------
 const svg = (vb, body, w = 1, extra = '') => `<svg class="k-svg" viewBox="${vb}" style="height:${extra || '1em'};width:${w}em" aria-hidden="true">${body}</svg>`;
 const S = (d, sw = 9) => `<path d="${d}" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/>`;
-const ITX = (h = '0.9em') => svg('0 0 100 100', S('M14 34 C22 24 36 22 43 38 L58 74 C63 86 76 88 86 74', 10) + S('M86 32 C78 22 66 24 59 36 L42 68 C35 82 22 84 14 74', 10), 0.9, h);
-const ITX_S = ITX('0.75em');
+// bold italic serif letters (outlines from Liberation Serif Bold Italic, SIL OFL 1.1)
+const GLYPH = (d, vb, k = 1) => (h) => `<svg class="k-svg" viewBox="${vb}" preserveAspectRatio="none" style="height:${h};width:calc(${h} * ${k})" aria-hidden="true"><path transform="scale(1,-1)" fill="currentColor" d="${d}"/></svg>`;
+const ITX = GLYPH('M439 374 274 236Q238 205 218.5 183.5Q199 162 190.5 145.5Q182 129 182 104Q182 74 224 65L212 0H-9Q-25 13 -25 43Q-25 78 7.5 119.5Q40 161 112 221L396 460L194 850L108 875L119 940H418L583 615L685 700Q734 740 758.5 772.5Q783 805 783 836Q783 865 728 875L740 940H953Q974 924 974 897Q974 822 836 707L628 533L856 86L942 65L931 0H629Z', '-40 -1000 1030 1040', 0.82);
+const ITX_S = ITX('0.72em');
+const ITY = GLYPH('M915 877Q915 787 834 657L395 -59Q299 -216 233.5 -290.5Q168 -365 100.0 -403.5Q32 -442 -44 -442Q-95 -442 -125.5 -438.5Q-156 -435 -205 -423L-163 -181H-103L-83 -307Q-58 -330 -13 -330Q47 -330 118.0 -261.0Q189 -192 300 -5L86 850L25 874L36 940H339L491 301L672 601Q699 645 717.5 697.5Q736 750 736 781Q736 807 727.5 823.5Q719 840 705.0 851.0Q691 862 646 875L658 940H889Q915 917 915 877Z', '-220 -1000 1150 1460', 0.78);
+const ITI = GLYPH('M337 90 456 66 445 0H52L202 850L111 874L122 940H487ZM253 1268Q253 1333 298.5 1377.0Q344 1421 407 1421Q471 1421 515.5 1376.5Q560 1332 560 1268Q560 1205 516.0 1159.5Q472 1114 407 1114Q343 1114 298.0 1158.5Q253 1203 253 1268Z', '20 -1440 560 1460', 0.4);
+const ITE = GLYPH('M864 760Q864 670 798.0 594.0Q732 518 607.5 469.0Q483 420 325 408Q320 388 320 340Q320 104 501 104Q575 104 638.0 132.5Q701 161 756 198L800 135Q712 61 609.0 20.5Q506 -20 411 -20Q234 -20 141.0 69.0Q48 158 48 330Q48 502 121.0 649.0Q194 796 314.0 880.5Q434 965 563 965Q701 965 782.5 909.5Q864 854 864 760ZM341 508Q463 521 541.5 596.5Q620 672 620 773Q620 815 599.5 836.0Q579 857 551 857Q482 857 422.5 755.0Q363 653 341 508Z', '30 -1000 850 1040', 0.8);
 const INTEG = (h = '1.15em') => svg('0 0 60 100', S('M44 10 C40 2 30 2 28 16 L22 84 C20 98 10 98 6 90', 8), 0.6, h);
 const RAD = (h = '1em') => svg('0 0 100 100', S('M4 58 L16 52 L32 92 L56 6 L100 6', 9), 0.95, h);
 const SIGMA = (h = '0.95em') => svg('0 0 80 100', S('M72 12 L12 12 L46 50 L12 88 L72 88', 10), 0.75, h);
@@ -15,16 +20,16 @@ const IFF = svg('0 0 120 60', S('M30 22 L90 22 M30 38 L90 38 M38 8 L16 30 L38 52
 const ANGLE = svg('0 0 100 100', S('M86 16 L14 84 L92 84', 10), 0.8, '0.8em');
 const LARROW = svg('0 0 100 60', S('M92 30 L12 30 M34 8 L12 30 L34 52', 10), 0.9, '0.7em');
 const APPROX = svg('0 0 100 80', S('M10 30 C30 10 50 50 90 22 M10 58 C30 38 50 78 90 50', 10), 0.9, '0.8em');
-const OP = (d, sw = 11) => svg('0 0 100 100', S(d, sw), 0.62, '0.62em');
+const OP = (d, sw = 14) => svg('0 0 100 100', S(d, sw), 0.62, '0.62em');
 const TIMES = OP('M20 20 L80 80 M80 20 L20 80');
-const DIVIDE = svg('0 0 100 100', S('M14 50 L86 50', 10) + '<circle cx="50" cy="20" r="9" fill="currentColor"/><circle cx="50" cy="80" r="9" fill="currentColor"/>', 0.62, '0.62em');
+const DIVIDE = svg('0 0 100 100', S('M12 50 L88 50', 13) + '<circle cx="50" cy="18" r="10" fill="currentColor"/><circle cx="50" cy="80" r="9" fill="currentColor"/>', 0.62, '0.62em');
 const PLUS = OP('M50 12 L50 88 M12 50 L88 50');
 const MINUS = OP('M12 50 L88 50');
 const EQUALS = OP('M14 34 L86 34 M14 66 L86 66');
 const DOT = svg('0 0 100 100', '<circle cx="50" cy="50" r="13" fill="currentColor"/>', 0.62, '0.62em');
 
 const bx = (f = true, cls = '') => `<i class="bx${f ? ' f' : ''}${cls ? ' ' + cls : ''}"></i>`;
-const fracIcon = (cls = '') => `<span class="fr ${cls}">${bx(true)}<b></b>${bx(true)}</span>`;
+const fracIcon = (cls = '') => `<span class="fr ${cls}">${bx(false)}<b></b>${bx(false)}</span>`;
 const mixIcon = `${bx(true)}<span class="fr">${bx(true)}<b></b>${bx(true)}</span>`;
 const sp = (c, h) => `<span class="${c}">${h}</span>`;
 const Y = (h) => sp('y', h), Rd = (h) => sp('r', h), Bl = (h) => sp('b', h), Pu = (h) => sp('p', h), Wh = (h) => sp('w', h);
@@ -48,28 +53,28 @@ const FN = [
   { id: 'optn', c: 0, r: 0, face: 'OPTN', lg: Y('QR') },
   { id: 'calc', c: 1, r: 0, face: 'CALC', lg: Y('SOLVE') + Rd('='), gap: 4 },
   { id: 'integ', c: 4, r: 0, face: `${INTEG()}<span style="display:inline-flex;flex-direction:column;font-size:.5em;margin-left:-.1em">${bx(false)}<span style="height:.5em"></span>${bx(false)}</span><span style="display:inline-block;width:.6em;height:.18em;background:currentColor;margin-left:.12em;opacity:.85"></span>`,
-    lg: Y(`<span class="fr" style="font-size:.62em"><span>d</span><b></b><span>d${ITX('0.9em')}</span></span>${bx(true)}`) + Rd(':'), gap: 16 },
-  { id: 'xvar', c: 5, r: 0, face: ITX('0.95em'), lg: Y(`${SIGMA('0.9em')}${bx(true)}`) },
+    lg: Y(`<span class="fr" style="font-size:.62em"><span>d</span><b></b><span>d${ITX('0.62em')}</span></span>${bx(true)}`) + Rd(':'), gap: 16 },
+  { id: 'xvar', c: 5, r: 0, face: ITX('0.62em'), lg: Y(`${SIGMA('0.9em')}${bx(true)}`) },
   // row 1
   { id: 'frac', c: 0, r: 1, face: fracIcon(), lg: Y(mixIcon) },
   { id: 'sqrt', c: 1, r: 1, face: `${RAD()}${bx(true, 'gb')}`, lg: Y(`<sup style="font-size:.55em;margin-right:-.35em">3</sup>${RAD('0.9em')}${bx(true)}`) },
-  { id: 'sq', c: 2, r: 1, face: `${ITX('0.95em')}<sup>2</sup>`, lg: Y(`${ITX_S}<sup>3</sup>`) + Bl('DEC') },
-  { id: 'pow', c: 3, r: 1, face: `${ITX('0.95em')}<sup>${bx(true, 'gb')}</sup>`, lg: Y(`${bx(true)}${RAD('0.9em')}${bx(false)}`) + Bl('HEX') },
+  { id: 'sq', c: 2, r: 1, face: `${ITX('0.62em')}<sup>2</sup>`, lg: Y(`${ITX_S}<sup>3</sup>`) + Bl('DEC') },
+  { id: 'pow', c: 3, r: 1, face: `${ITX('0.62em')}<sup>${bx(true, 'gb')}</sup>`, lg: Y(`${bx(true)}${RAD('0.9em')}${bx(false)}`) + Bl('HEX') },
   { id: 'log', c: 4, r: 1, face: `log<sub style="font-size:.55em">${bx(true, 'gb')}</sub>${bx(false)}`, lg: Y(`10<sup>${bx(true)}</sup>`) + Bl('BIN') },
-  { id: 'ln', c: 5, r: 1, face: 'ln', lg: Y(`<span style="font-style:italic">e</span><sup>${bx(true)}</sup>`) + Bl('OCT') },
+  { id: 'ln', c: 5, r: 1, face: 'ln', lg: Y(`${ITE('0.72em')}<sup>${bx(true)}</sup>`) + Bl('OCT') },
   // row 2
   { id: 'neg', c: 0, r: 2, face: `(<span style="display:inline-block;width:.5em;height:.1em;background:currentColor;margin:0 .06em;vertical-align:.32em"></span>)`, lg: Y('log') + BRK('A') },
   { id: 'dms', c: 1, r: 2, face: '<span style="letter-spacing:.08em">°’”</span>', lg: Y('FACT') + BRK('B') },
-  { id: 'inv', c: 2, r: 2, face: `${ITX('0.95em')}<sup>−1</sup>`, lg: Y(`${ITX_S}!`) + BRK('C') },
+  { id: 'inv', c: 2, r: 2, face: `${ITX('0.62em')}<sup>−1</sup>`, lg: Y(`${ITX_S}!`) + BRK('C') },
   { id: 'sin', c: 3, r: 2, face: 'sin', lg: Y('sin<sup>−1</sup>') + BRK('D') },
   { id: 'cos', c: 4, r: 2, face: 'cos', lg: Y('cos<sup>−1</sup>') + BRK('E') },
   { id: 'tan', c: 5, r: 2, face: 'tan', lg: Y('tan<sup>−1</sup>') + BRK('F') },
   // row 3
   { id: 'sto', c: 0, r: 3, face: 'STO', lg: Y('RECALL') },
-  { id: 'eng', c: 1, r: 3, face: 'ENG', lg: `<span class="bk-p"><span class="p">${ANGLE}</span></span>` + Y(LARROW) + Pu(`<span style="font-style:italic;font-family:serif">i</span>`), gap: 6 },
+  { id: 'eng', c: 1, r: 3, face: 'ENG', lg: `<span class="bk-p"><span class="p">${ANGLE}</span></span>` + Y(LARROW) + Pu(ITI('0.95em')), gap: 6 },
   { id: 'lpar', c: 2, r: 3, face: '(', lg: Y('Abs') },
-  { id: 'rpar', c: 3, r: 3, face: ')', lg: Y(',') + Rd(ITX('0.85em')), gap: 30 },
-  { id: 'sd', c: 4, r: 3, face: `S${IFF}D`, lg: Y(`a<span class="fr" style="font-size:.55em"><span>b</span><b></b><span>c</span></span>${IFF}<span class="fr" style="font-size:.55em"><span>d</span><b></b><span>c</span></span>`) + Rd('<span style="font-style:italic;font-family:serif">y</span>'), gap: 6 },
+  { id: 'rpar', c: 3, r: 3, face: ')', lg: Y(',') + Rd(ITX('0.58em')), gap: 30 },
+  { id: 'sd', c: 4, r: 3, face: `S${IFF}D`, lg: Y(`a<span class="fr" style="font-size:.55em"><span>b</span><b></b><span>c</span></span>${IFF}<span class="fr" style="font-size:.55em"><span>d</span><b></b><span>c</span></span>`) + Rd(ITY('0.95em')), gap: 6 },
   { id: 'mplus', c: 5, r: 3, face: 'M+', lg: Y('M−') + Rd('M'), gap: 22 },
 ];
 
@@ -91,7 +96,7 @@ const WK = [
   { id: 'sub', c: 4, r: 2, face: MINUS, lg: Y('Rec') },
   { id: 'k0', c: 0, r: 3, face: '0', lg: Y('Rnd') },
   { id: 'dot', c: 1, r: 3, face: DOT, lg: Y('Ran#') + Rd('RanInt'), gap: 6 },
-  { id: 'exp', c: 2, r: 3, face: `<span style="font-size:.8em">×10</span><span style="font-size:.85em;margin-top:-.55em">${ITX('0.6em')}</span>`, lg: Y('π') + Rd('<span style="font-style:italic">e</span>'), spread: true },
+  { id: 'exp', c: 2, r: 3, face: `<span style="font-size:.8em">×10</span><span style="font-size:.85em;margin-top:-.55em">${ITX('0.55em')}</span>`, lg: Y('π') + Rd(ITE('0.72em')), spread: true },
   { id: 'ans', c: 3, r: 3, face: 'Ans', lg: Y('%') },
   { id: 'eq', c: 4, r: 3, face: EQUALS, lg: Y(APPROX) },
 ];
@@ -182,13 +187,13 @@ function buildDpad(face, keys) {
   s.setAttribute('class', 'dpad');
   Object.assign(s.style, box(284, 653, W, H));
   const cx = W / 2, cy = H / 2;
-  const shape = (k) => {
-    // rounded diamond scaled by k around the centre
-    const rx = (W / 2 - 2) * k, ry = (H / 2 - 2) * k;
+  const shape = (k, ky = k) => {
+    // rounded diamond scaled by k (ky vertically) around the centre
+    const rx = (W / 2 - 2) * k, ry = (H / 2 - 2) * ky;
     const p = (x, y) => `${(cx + x).toFixed(1)},${(cy + y).toFixed(1)}`;
     return `M${p(0, -ry)} C${p(rx * 0.3, -ry)} ${p(rx * 0.62, -ry * 0.62)} ${p(rx * 0.86, -ry * 0.34)} C${p(rx * 1.02, -ry * 0.15)} ${p(rx * 1.02, ry * 0.15)} ${p(rx * 0.86, ry * 0.34)} C${p(rx * 0.62, ry * 0.62)} ${p(rx * 0.3, ry)} ${p(0, ry)} C${p(-rx * 0.3, ry)} ${p(-rx * 0.62, ry * 0.62)} ${p(-rx * 0.86, ry * 0.34)} C${p(-rx * 1.02, ry * 0.15)} ${p(-rx * 1.02, -ry * 0.15)} ${p(-rx * 0.86, -ry * 0.34)} C${p(-rx * 0.62, -ry * 0.62)} ${p(-rx * 0.3, -ry)} ${p(0, -ry)} Z`;
   };
-  const outer = shape(1), ringOut = shape(0.92), ringIn = shape(0.56);
+  const outer = shape(1), ringOut = shape(0.9), ringIn = shape(0.56, 0.3);
   const sectors = {
     up: `M${cx},${cy} L0,0 L${W},0 Z`,
     right: `M${cx},${cy} L${W},0 L${W},${H} Z`,
@@ -209,7 +214,7 @@ function buildDpad(face, keys) {
   // dark gaps between the four arms
   const dx = W / 2, dy = H / 2;
   html += `<clipPath id="dp-outer"><path d="${ringOut}"/></clipPath>`;
-  html += `<path clip-path="url(#dp-outer)" d="M${cx - dx},${cy - dy} L${cx + dx},${cy + dy} M${cx + dx},${cy - dy} L${cx - dx},${cy + dy}" stroke="#141416" stroke-width="9" pointer-events="none"/>`;
+  html += `<path clip-path="url(#dp-outer)" d="M${cx - dx},${cy - dy} L${cx + dx},${cy + dy} M${cx + dx},${cy - dy} L${cx - dx},${cy + dy}" stroke="#141416" stroke-width="13" pointer-events="none"/>`;
   html += `<path d="${ringIn}" fill="url(#dpc)" pointer-events="none"/>`;
   s.innerHTML = html;
   face.appendChild(s);

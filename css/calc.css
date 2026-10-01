@@ -228,9 +228,11 @@ html, body {
 .key.round {
   border-radius: 50%;
   background:
-    repeating-conic-gradient(from 0deg, rgba(255,255,255,.08) 0deg 3deg, rgba(0,0,0,.06) 3deg 6deg),
-    radial-gradient(circle at 50% 45%, #f6f4f1 0%, #dedbd7 30%, #bcb8b4 62%, #8d8a86 85%, #5d5a57 100%);
-  box-shadow: 0 0 0 calc(var(--u) * 4) #0c0c0c, 0 0 0 calc(var(--u) * 7) #3a393a, 0 calc(var(--u) * 6) calc(var(--u) * 6) rgba(0,0,0,.6);
+    radial-gradient(circle at 42% 38%, rgba(255,255,255,.75) 0, rgba(255,255,255,0) 22%),
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 0 50%, rgba(0,0,0,.28) 72%, rgba(0,0,0,.62) 100%),
+    conic-gradient(from 15deg, #f4f3f1, #9d9a96 10%, #ecebe8 22%, #8b8884 35%, #f2f1ee 48%, #9a9793 60%, #e9e8e5 73%, #8a8783 86%, #f4f3f1);
+  box-shadow: 0 0 0 calc(var(--u) * 4) #0c0c0c, 0 0 0 calc(var(--u) * 7) #464547, 0 calc(var(--u) * 6) calc(var(--u) * 7) rgba(0,0,0,.65),
+    inset 0 0 calc(var(--u) * 5) rgba(0,0,0,.55);
 }
 
 /* text legends printed above keys */
@@ -252,17 +254,24 @@ html, body {
 .p { color: var(--purple); }
 .w { color: var(--legend-white); }
 
-/* bracketed Base-N / Complex letters: ┌A┐ */
+/* bracketed Base-N / Complex letters: ┌A┐ (corner brackets) */
 .bk-b, .bk-p {
+  position: relative;
   display: inline-block;
-  border: calc(var(--u) * 3) solid var(--blue);
-  border-bottom: none;
-  padding: calc(var(--u) * 2) calc(var(--u) * 4) 0;
-  height: calc(var(--u) * 14);
-  line-height: calc(var(--u) * 20);
-  margin-bottom: calc(var(--u) * -2);
+  padding: 0 calc(var(--u) * 6);
+  --bc: var(--blue);
 }
-.bk-p { border-color: var(--purple); }
+.bk-p { --bc: var(--purple); }
+.bk-b::before, .bk-b::after, .bk-p::before, .bk-p::after {
+  content: '';
+  position: absolute;
+  top: calc(var(--u) * -2);
+  width: calc(var(--u) * 5);
+  height: calc(var(--u) * 11);
+  border-top: calc(var(--u) * 2.5) solid var(--bc);
+}
+.bk-b::before, .bk-p::before { left: 0; border-left: calc(var(--u) * 2.5) solid var(--bc); }
+.bk-b::after, .bk-p::after { right: 0; border-right: calc(var(--u) * 2.5) solid var(--bc); }
 
 /* small placeholder boxes and glyph helpers */
 .bx {

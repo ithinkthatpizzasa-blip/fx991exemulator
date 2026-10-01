@@ -389,3 +389,19 @@ ex('p38 Math ERROR for out of range', '10 x^ 100 =', 'Math ERROR');
 // ---------- p.42-43 FAQ ----------
 ex('p43 (sin 30)+15 = 15.5 (LineIO)', 'sin 30 ) + 15 =', '15.5', { io: 'LL' });
 ex('p43 sin(30+15 = 0.7071067812 (LineIO)', 'sin 30 + 15 =', '0.7071067812', { io: 'LL' });
+
+// ---------- p.38 Stack ERROR ----------
+ex('p38 Stack ERROR for too deeply nested parentheses', '( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( 1 =', 'Stack ERROR');
+ex('p23 Base-N negative decimal value', 'x² - 5 + 2 =', '-3', BASEN);
+
+test('p8 auto-inserted parentheses are shown: 6÷2(1+2) → 6÷(2(1+2))', () => {
+  const c = newCalc();
+  press(c, '6 ÷ 2 ( 1 + 2 ) =');
+  assert.equal(c.mode.cs.editor.root.map((t) => t.v || t.t).join(''), '6÷(2(1+2))');
+  assert.equal(result(c), '1');
+});
+test('p8 auto-inserted parentheses: 2÷2√2 → 2÷(2√2)', () => {
+  const c = newCalc();
+  press(c, '2 ÷ 2 √ 2 =');
+  assert.equal(c.mode.cs.editor.root.map((t) => t.v || t.t).join(''), '2÷(2sqrt)');
+});
