@@ -12,10 +12,11 @@ import { formatValueLines, toPlain } from '../engine/format.js';
 import { textWidth } from '../ui/bitmap.js';
 
 const SUMS = [['Σ𝑥', 'sx'], ['Σ𝑥²', 'sx2'], ['Σ𝑦', 'sy'], ['Σ𝑦²', 'sy2'], ['Σ𝑥𝑦', 'sxy'], ['Σ𝑥³', 'sx3'], ['Σ𝑥²𝑦', 'sx2y'], ['Σ𝑥⁴', 'sx4']];
-// 1-/2-Variable Calc list: left edge of the labels, and gap (dots) between the
-// longest label and the "=" column
-const VAR_LIST_X = 24;
-const VAR_LIST_GAP = 9;
+// 1-/2-Variable Calc list, measured on a photo of the real unit: labels start in
+// column 38, the "=" signs in column 80 (10 dots after the widest label, max(𝑦)),
+// and each value starts right after its "=" (column 86)
+const VAR_LIST_X = 38;
+const VAR_LIST_GAP = 10;
 const VARS = [['𝑥̄', 'xbar'], ['σ²𝑥', 's2x'], ['σ𝑥', 'sigx'], ['s²𝑥', 'ss2x'], ['s𝑥', 'ssx'], ['𝑛', 'n'], ['𝑦̄', 'ybar'], ['σ²𝑦', 's2y'], ['σ𝑦', 'sigy'], ['s²𝑦', 'ss2y'], ['s𝑦', 'ssy']];
 
 export class StatMode {
@@ -298,15 +299,15 @@ export class StatMode {
     const page = L.lines.slice(this.listTop, this.listTop + this.listRows()).map(([label, v]) => {
       let s = 'ERROR';
       if (v) { try { s = toPlain(formatValueLines(v, st)[0]).replace(/-/g, '−').replace(/×10\^\(?(−?\d+)\)?/, '×10^{$1}'); } catch (e) { s = 'ERROR'; } }
-      return { label, s, lx: 0, ex: 26 };
+      return { label, s, lx: 0, ex: 26, vx: 34 };
     });
     if (!L.title) {
       // 1-/2-Variable Calc: like the real unit the list sits towards the middle, with the
       // "=" signs lined up about two spaces after the longest label (min(𝑥) ... max(𝑦))
       const labW = Math.max(...L.lines.map(([label]) => textWidth(label, 'S')));
       const valW = Math.max(0, ...page.map((r) => textWidth(r.s, 'S')));
-      const lx = Math.max(0, Math.min(VAR_LIST_X, 188 - (labW + VAR_LIST_GAP + 8 + valW)));
-      for (const r of page) { r.lx = lx; r.ex = lx + labW + VAR_LIST_GAP; }
+      const lx = Math.max(0, Math.min(VAR_LIST_X, 187 - (labW + VAR_LIST_GAP + 6 + valW)));
+      for (const r of page) { r.lx = lx; r.ex = lx + labW + VAR_LIST_GAP; r.vx = r.ex + 6; }
     }
     return page;
   }
@@ -318,13 +319,23 @@ export class StatMode {
     this.listPage().forEach((r, i) => {
       bm.text(r.label, r.lx, y + i * 10 + 1, 'S');
       bm.text('=', r.ex, y + i * 10 + 1, 'S');
-      bm.text(r.s, r.ex + 8, y + i * 10 + 1, 'S');
+      bm.text(r.s, r.vx, y + i * 10 + 1, 'S');
     });
     const n = L.lines.length;
     if (n > vis) {
-      const h = 60, seg = Math.max(6, Math.floor((h * vis) / n));
-      const pos = Math.min(h - seg, Math.round(((h - seg) * this.listTop) / Math.max(1, n - vis)));
-      bm.fill(189, pos, 2, seg);
+      if (L.title) {
+        const h = 60, seg = Math.max(6, Math.floor((h * vis) / n));
+        const pos = Math.min(h - seg, Math.round(((h - seg) * this.listTop) / Math.max(1, n - vis)));
+        bm.fill(189, pos, 2, seg);
+      } else {
+        // as on the real unit: a 4-dot thumb with rounded ends at the right edge,
+        // on a track starting at row 1 (rows 1-14 on the first page of 2-Variable Calc)
+        const h = 57, seg = Math.max(6, Math.floor((h * vis) / n));
+        const pos = 1 + Math.min(h - seg, Math.round(((h - seg) * this.listTop) / Math.max(1, n - vis)));
+        bm.fill(188, pos + 1, 4, seg - 2);
+        bm.fill(189, pos, 2, 1);
+        bm.fill(189, pos + seg - 1, 2, 1);
+      }
     }
   }
   status(f) { if (this.screen === 'calc') this.cs.status(f); }

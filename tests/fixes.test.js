@@ -112,21 +112,44 @@ test('MENU: SHIFT + a letter key does not choose a mode', () => {
 ex('Digit separator: groups of three digits separated by a space', '1 2 3 4 5 6 7 =', '1 234 567', { digitSep: true });
 ex('Digit separator with the comma decimal mark', '1 2 3 4 5 6 7 . 5 ÷ 1 0 =', '123 456,75', { digitSep: true, io: 'MD', decimalMark: ',' });
 
-// ---------- 2-Variable Calc list layout ----------
-test('2-Variable Calc: list indented, "=" about two spaces after min(𝑥)/max(𝑦)', () => {
+// ---------- 2-Variable Calc list layout (measured on a photo of the real unit) ----------
+test('2-Variable Calc: labels in column 38, "=" in column 80, values from column 86', () => {
   const c = newCalc({ mode: 'stat' });
   press(c, '2 1 = 2 = 3 = ▼ ▶ 4 = 5 = 7 = OPTN 3');
   const m = c.mode;
   const pages = [];
   for (let i = 0; i < 4; i++) { pages.push(...m.listPage()); press(c, '▼'); }
-  const eqs = new Set(pages.map((r) => r.ex));
-  assert.equal(eqs.size, 1, 'one "=" column');
-  for (const r of pages) {
-    assert.ok(r.lx >= 16, `${r.label} is indented from the left edge`);
-    assert.ok(r.ex - (r.lx + textWidth(r.label, 'S')) >= 8, `${r.label}: gap before "="`);
-    assert.ok(r.ex + 8 + textWidth(r.s, 'S') <= 188, `${r.label}: value fits`);
-  }
   assert.ok(pages.some((r) => r.label === 'max(𝑦)'));
+  for (const r of pages) {
+    assert.deepEqual([r.lx, r.ex, r.vx], [38, 80, 86], r.label);
+    assert.ok(r.ex - (r.lx + textWidth(r.label, 'S')) >= 8, `${r.label}: gap before "="`);
+    assert.ok(r.vx + textWidth(r.s, 'S') <= 188, `${r.label}: value clear of the scroll bar`);
+  }
+});
+test('1-Variable Calc uses the same columns', () => {
+  const c = newCalc({ mode: 'stat' });
+  press(c, '1 1 = 2 = 3 = OPTN 3');
+  for (const r of c.mode.listPage()) assert.deepEqual([r.lx, r.ex, r.vx], [38, 80, 86], r.label);
+});
+test('2-Variable Calc: the first-page scroll thumb is 4 dots wide with rounded ends (rows 1-14)', () => {
+  const c = newCalc({ mode: 'stat' });
+  press(c, '2 1 = 2 = 3 = ▼ ▶ 4 = 5 = 7 = OPTN 3');
+  c.render();
+  const row = (y) => [187, 188, 189, 190, 191].map((x) => (c.bm.get(x, y) ? '#' : '.')).join('');
+  assert.equal(row(0), '.....');
+  assert.equal(row(1), '..##.');
+  for (let y = 2; y <= 13; y++) assert.equal(row(y), '.####', `row ${y}`);
+  assert.equal(row(14), '..##.');
+  assert.equal(row(15), '.....');
+});
+test('the longest value (−1.234567891×10⁻⁹⁹) still ends clear of the scroll bar', () => {
+  const c = newCalc({ mode: 'stat' });
+  press(c, '2 1 = 2 = 3 = ▼ ▶ 4 = 5 = 7 = OPTN 3');
+  const m = c.mode;
+  m.list.lines[0][1] = m.list.lines[0][1].constructor.parse('-1.234567891e-99');
+  const page = m.listPage();
+  assert.ok(page[0].vx + textWidth(page[0].s, 'S') <= 188);
+  assert.ok(page.every((r) => r.lx === page[0].lx && r.lx <= 38));
 });
 
 // ---------- cursor at the left end of the line ----------
