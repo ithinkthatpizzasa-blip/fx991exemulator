@@ -119,7 +119,8 @@ function legend(face, x, w, bottom, html, opts = {}) {
 export function buildCalculator(face, onKey) {
   face.appendChild(el('div', 'bezel'));
   face.appendChild(el('div', 'panel'));
-  const brand = el('div', 'brand', null, 'LOGO');
+  const brand = el('div', 'brand', null,
+    '<span class="brand-name">SciCal</span><span class="brand-model">fx-991EX</span><span class="brand-line">EMULATOR</span>');
   brand.id = 'brand';
   face.appendChild(brand);
   face.appendChild(el('div', 'solar'));
