@@ -120,7 +120,8 @@ function decItems(d, st, engExp = null) {
   let mant = p.mant;
   const mark = st.decimalMark === ',' ? ',' : '.';
   let [ip, fp] = mant.split('.');
-  if (st.digitSep) ip = groupDigits(ip, mark === ',' ? '.' : ',');
+  // the real unit separates groups of three digits with a space, whatever the decimal mark
+  if (st.digitSep) ip = groupDigits(ip, ' ');
   mant = fp !== undefined ? ip + mark + fp : ip;
   let s = (p.neg ? MINUS : '') + mant;
   if (p.exp !== null) {

@@ -79,3 +79,69 @@ test('radian / grad marks have large-font glyphs (no "?")', () => {
   assert.ok(FONTS.L.glyphs.has('ʳ'));
   assert.ok(FONTS.L.glyphs.has('ᵍ'));
 });
+
+// ---------- S⇔D in Equation/Func mode ----------
+ex('EQN: S⇔D turns the displayed root into a decimal', '2 2 1 = 0 = - 2 = = SD', '𝑥₁=1.414213562, 𝑥₂=-√2, 𝑥=0, 𝑦=-2', { mode: 'eqn' });
+ex('EQN: S⇔D twice is back to the exact root', '2 2 1 = 0 = - 2 = = SD SD', '𝑥₁=√2, 𝑥₂=-√2, 𝑥=0, 𝑦=-2', { mode: 'eqn' });
+ex('EQN: S⇔D acts on the root on screen', '2 2 1 = 0 = - 2 = = ▼ SD', '𝑥₁=√2, 𝑥₂=-1.414213562, 𝑥=0, 𝑦=-2', { mode: 'eqn' });
+ex('EQN: S⇔D on a complex root', '2 2 1 = 2 = 4 = = SD', '𝑥₁=-1+1.732050808𝑖, 𝑥₂=-1-√3𝑖, 𝑥=-1, 𝑦=3', { mode: 'eqn' });
+ex('EQN simultaneous: S⇔D on a fraction', '1 2 1 = - 2 = 3 = 2 = 3 = 4 = = SD', '𝑥=2.428571429, 𝑦=-2/7', { mode: 'eqn' });
+ex('EQN simultaneous: S⇔D on a decimal (MathI/DecimalO) gives the fraction', '1 2 1 = - 2 = 3 = 2 = 3 = 4 = = SD', '𝑥=17/7, 𝑦=-0.2857142857', { mode: 'eqn', io: 'MD' });
+
+// ---------- the addition key as a plus sign ----------
+ex('[+] at the start of an expression is ignored: +2+4 = 6', '+ 2 + 4 =', '6');
+ex('+2+4 = 6 (Line IO)', '+ 2 + 4 =', '6', { io: 'LL' });
+ex('[+] after "(" and after an operator', '( + 3 ) × + 2 =', '6');
+ex('[+] alone is still a Syntax ERROR', '+ =', 'Syntax ERROR');
+ex('EQN simultaneous: +1, +2 as coefficients', '1 2 + 1 = + 2 = 3 = 2 = 3 = 4 = =', '𝑥=-1, 𝑦=2', { mode: 'eqn' });
+ex('EQN polynomial: +1, +2 as coefficients', '2 2 + 1 = + 2 = - 2 = =', '𝑥₁=-1+√3, 𝑥₂=-1-√3, 𝑥=-1, 𝑦=-3', { mode: 'eqn' });
+ex('Inequality: +1 as a coefficient', '2 2 + 1 = 2 = - 3 = =', '-3<𝑥<1', { mode: 'ineq' });
+ex('Ratio: +3 as a value', '1 + 3 = 8 = 12 = =', '9/2', { mode: 'ratio' });
+
+// ---------- MENU: ALPHA + the letter key also selects modes A, B, C ----------
+for (const [seq, mode] of [['MENU neg', 'eqn'], ['MENU ALPHA neg', 'eqn'], ['MENU dms', 'ineq'], ['MENU ALPHA dms', 'ineq'], ['MENU inv', 'ratio'], ['MENU ALPHA inv', 'ratio']]) {
+  test(`${seq} enters ${mode}`, () => assert.equal(press(newCalc(), seq).modeId, mode));
+}
+test('MENU: SHIFT + a letter key does not choose a mode', () => {
+  const c = press(newCalc(), 'MENU SHIFT neg');
+  assert.equal(c.modeId, 'calc');
+  assert.equal(c.overlays.length, 1);
+});
+
+// ---------- digit separator is a space ----------
+ex('Digit separator: groups of three digits separated by a space', '1 2 3 4 5 6 7 =', '1 234 567', { digitSep: true });
+ex('Digit separator with the comma decimal mark', '1 2 3 4 5 6 7 . 5 ÷ 1 0 =', '123 456,75', { digitSep: true, io: 'MD', decimalMark: ',' });
+
+// ---------- 2-Variable Calc list layout ----------
+test('2-Variable Calc: list indented, "=" about two spaces after min(𝑥)/max(𝑦)', () => {
+  const c = newCalc({ mode: 'stat' });
+  press(c, '2 1 = 2 = 3 = ▼ ▶ 4 = 5 = 7 = OPTN 3');
+  const m = c.mode;
+  const pages = [];
+  for (let i = 0; i < 4; i++) { pages.push(...m.listPage()); press(c, '▼'); }
+  const eqs = new Set(pages.map((r) => r.ex));
+  assert.equal(eqs.size, 1, 'one "=" column');
+  for (const r of pages) {
+    assert.ok(r.lx >= 16, `${r.label} is indented from the left edge`);
+    assert.ok(r.ex - (r.lx + textWidth(r.label, 'S')) >= 8, `${r.label}: gap before "="`);
+    assert.ok(r.ex + 8 + textWidth(r.s, 'S') <= 188, `${r.label}: value fits`);
+  }
+  assert.ok(pages.some((r) => r.label === 'max(𝑦)'));
+});
+
+// ---------- cursor at the left end of the line ----------
+const cursorAtLeftEdge = (setup, seq) => {
+  const c = newCalc(setup);
+  press(c, seq);
+  c.blink = true;
+  c.render();
+  let on = 0;
+  for (let y = 0; y < 15; y++) on += c.bm.get(0, y) ? 1 : 0;
+  return on;
+};
+test('cursor is visible at the leftmost position', () => {
+  assert.ok(cursorAtLeftEdge({}, '') >= 10, 'empty input');
+  assert.ok(cursorAtLeftEdge({}, '1 2 3 ◀ ◀ ◀') >= 10, 'before 123');
+  assert.ok(cursorAtLeftEdge({}, '▭ ◀') >= 10, 'before a fraction');
+  assert.ok(cursorAtLeftEdge({ io: 'LL' }, '1 2 3 ◀ ◀ ◀') >= 10, 'Line IO');
+});

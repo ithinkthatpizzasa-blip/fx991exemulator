@@ -2,7 +2,7 @@
   "name": "SciCalc EX",
   "short_name": "SciCalc",
   "description": "Offline scientific calculator modelled on the fx-991EX feature set.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "id": "./",
   "start_url": "./",
   "scope": "./",

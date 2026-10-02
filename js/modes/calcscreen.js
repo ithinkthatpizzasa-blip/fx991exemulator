@@ -27,23 +27,28 @@ export function drawExpr(bm, items, opts) {
   const cur = opts.cursor || null;
   const box = layoutList(items, size, { line: !!opts.line }, cur);
   const width = opts.width || 192;
-  const x0 = opts.x || 0;
+  // the text starts one dot in from the edge: the bar cursor is drawn in the
+  // dot column just before its position, so at the very start of the line it
+  // stays visible (as on the real unit) instead of falling outside the clip
+  const pad = 1;
+  const x0 = (opts.x || 0) + pad;
+  const vw = width - pad;
   let scroll = opts.scroll || 0;
   if (box.cursor) {
     const cx = box.cursor.x;
-    if (cx - scroll > width - 6) scroll = cx - width + 6;
+    if (cx - scroll > vw - 6) scroll = cx - vw + 6;
     if (cx - scroll < 0) scroll = Math.max(0, cx - 8);
   }
-  if (box.w - scroll < width - 8) scroll = Math.max(0, box.w - width + 8);
+  if (box.w - scroll < vw - 8) scroll = Math.max(0, box.w - vw + 8);
   if (!box.cursor && !opts.keepScroll) scroll = 0;
   const base = (opts.y || 0) + box.a - 1;
-  bm.setClip(x0, opts.clipTop ?? 0, x0 + width - 1, opts.clipBottom ?? 62);
+  bm.setClip(x0 - pad, opts.clipTop ?? 0, x0 + vw - 1, opts.clipBottom ?? 62);
   box.draw(bm, x0 - scroll, base);
   if (box.cursor && opts.showCursor) drawCursor(bm, x0 - scroll, base, box.cursor, opts.cursorShape || 'bar');
   bm.noClip();
   if (opts.arrows !== false) {
-    if (scroll > 0) bm.text('◁', x0, base - 6, 'S');
-    if (box.w - scroll > width) bm.text('▷', x0 + width - 4, base - 6, 'S');
+    if (scroll > 0) bm.text('◁', x0 - pad, base - 6, 'S');
+    if (box.w - scroll > vw) bm.text('▷', x0 + vw - 4, base - 6, 'S');
   }
   return { box, scroll, base };
 }

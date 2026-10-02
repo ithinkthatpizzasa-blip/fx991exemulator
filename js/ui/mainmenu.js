@@ -77,7 +77,9 @@ export class MainMenu extends Overlay {
     else {
       const lab = MENU_KEYS[key];
       const idx = lab ? MENU_LABELS.indexOf(lab) : -1;
-      if (idx >= 0 && idx < n && !this.calc.lastMods.shift && !this.calc.lastMods.alpha) return this.choose(idx);
+      // the lettered modes (A, B, C) can also be chosen with ALPHA + the letter key
+      const mods = this.calc.lastMods;
+      if (idx >= 0 && idx < n && !mods.shift && (!mods.alpha || /[A-Z]/.test(lab))) return this.choose(idx);
     }
     const row = Math.floor(this.sel / 4);
     if (row < this.topRow) this.topRow = row;

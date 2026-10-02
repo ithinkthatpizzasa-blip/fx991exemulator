@@ -2,14 +2,14 @@
 
 ## 1. Manual-derived test suite
 
-`node --test tests/*.test.js` — **229 tests, 229 passing (100 %)**.
+`node --test tests/*.test.js` — **254 tests, 254 passing (100 %)**.
 
 | File | What it covers |
 |---|---|
 | `tests/manual.test.js` | 191 tests: every worked example in the fx-991EX user manual, typed as the manual's key sequence and compared with the result the manual prints (pages 6–44) |
 | `tests/sanity.test.js` | the spec's sanity checks (§7.2), persistence across restarts, corrupted / blocked / full storage, ON/OFF, RESET, IO change, and a randomised "press any key in any mode" robustness test |
 | `tests/engine.test.js` | the BigInt decimal engine (rounding, transcendental functions, speed) |
-| `tests/fixes.test.js` | 24 regression tests for differences found against the real unit: the [−] key as a negative sign (Abs(−1), √(−4) in Complex mode, negative Equation/Inequality coefficients), S⇔D in Ratio mode, page-wise ▲/▼ in the statistics result list, the one-line cell value in Table mode, the 9×14 LCD font and the 𝑥 / × glyphs |
+| `tests/fixes.test.js` | 49 regression tests for differences found against the real unit: the [−] key as a negative sign (Abs(−1), √(−4) in Complex mode, negative Equation/Inequality coefficients), the [+] key as a plus sign (+2+4, +3 as a coefficient), S⇔D in Ratio and Equation/Func modes, ALPHA + A/B/C in MENU, the space digit separator, page-wise ▲/▼ and the indented layout of the statistics result list, the cursor at the left end of the line, the one-line cell value in Table mode, the 9×14 LCD font and the 𝑥 / × glyphs |
 
 Examples by manual section (all passing): setup & number formats (p6–7), input rules and
 priority (p8–9), natural input, INS, UNDO (p9–10), S⇔D, fractions, percent, DMS,

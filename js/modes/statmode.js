@@ -12,6 +12,10 @@ import { formatValueLines, toPlain } from '../engine/format.js';
 import { textWidth } from '../ui/bitmap.js';
 
 const SUMS = [['Σ𝑥', 'sx'], ['Σ𝑥²', 'sx2'], ['Σ𝑦', 'sy'], ['Σ𝑦²', 'sy2'], ['Σ𝑥𝑦', 'sxy'], ['Σ𝑥³', 'sx3'], ['Σ𝑥²𝑦', 'sx2y'], ['Σ𝑥⁴', 'sx4']];
+// 1-/2-Variable Calc list: left edge of the labels, and gap (dots) between the
+// longest label and the "=" column
+const VAR_LIST_X = 24;
+const VAR_LIST_GAP = 9;
 const VARS = [['𝑥̄', 'xbar'], ['σ²𝑥', 's2x'], ['σ𝑥', 'sigx'], ['s²𝑥', 'ss2x'], ['s𝑥', 'ssx'], ['𝑛', 'n'], ['𝑦̄', 'ybar'], ['σ²𝑦', 's2y'], ['σ𝑦', 'sigy'], ['s²𝑦', 'ss2y'], ['s𝑦', 'ssy']];
 
 export class StatMode {
@@ -287,22 +291,35 @@ export class StatMode {
     }
   }
   listRows() { return this.list.title ? 5 : 6; }
+  // visible rows of the result list: [{ label, value text, x of label, x of "=" }]
+  listPage() {
+    const L = this.list;
+    const st = { ...this.calc.fmt(), io: 'MD', engSym: false };
+    const page = L.lines.slice(this.listTop, this.listTop + this.listRows()).map(([label, v]) => {
+      let s = 'ERROR';
+      if (v) { try { s = toPlain(formatValueLines(v, st)[0]).replace(/-/g, '−').replace(/×10\^\(?(−?\d+)\)?/, '×10^{$1}'); } catch (e) { s = 'ERROR'; } }
+      return { label, s, lx: 0, ex: 26 };
+    });
+    if (!L.title) {
+      // 1-/2-Variable Calc: like the real unit the list sits towards the middle, with the
+      // "=" signs lined up about two spaces after the longest label (min(𝑥) ... max(𝑦))
+      const labW = Math.max(...L.lines.map(([label]) => textWidth(label, 'S')));
+      const valW = Math.max(0, ...page.map((r) => textWidth(r.s, 'S')));
+      const lx = Math.max(0, Math.min(VAR_LIST_X, 188 - (labW + VAR_LIST_GAP + 8 + valW)));
+      for (const r of page) { r.lx = lx; r.ex = lx + labW + VAR_LIST_GAP; }
+    }
+    return page;
+  }
   renderList(bm) {
     const L = this.list;
     let y = 0;
     if (L.title) { bm.text(L.title, 0, 0, 'S'); y = 10; }
     const vis = this.listRows();
-    const st = { ...this.calc.fmt(), io: 'MD', engSym: false };
-    for (let i = 0; i < vis; i++) {
-      const line = L.lines[this.listTop + i];
-      if (!line) break;
-      const [label, v] = line;
-      bm.text(label, 0, y + i * 10 + 1, 'S');
-      bm.text('=', 26, y + i * 10 + 1, 'S');
-      let s = 'ERROR';
-      if (v) { try { s = toPlain(formatValueLines(v, st)[0]).replace(/-/g, '−').replace(/×10\^\(?(−?\d+)\)?/, '×10^{$1}'); } catch (e) { s = 'ERROR'; } }
-      bm.text(s, 34, y + i * 10 + 1, 'S');
-    }
+    this.listPage().forEach((r, i) => {
+      bm.text(r.label, r.lx, y + i * 10 + 1, 'S');
+      bm.text('=', r.ex, y + i * 10 + 1, 'S');
+      bm.text(r.s, r.ex + 8, y + i * 10 + 1, 'S');
+    });
     const n = L.lines.length;
     if (n > vis) {
       const h = 60, seg = Math.max(6, Math.floor((h * vis) / n));

@@ -130,6 +130,11 @@ class P {
       this.next();
       return { k: 'neg', a: this.unary(), ref: t.ref };
     }
+    // likewise [+] there is a plus sign and is ignored: +3 = 3, +2+4 = 6
+    if (t && t.k === 'op' && t.id === '+') {
+      this.next();
+      return this.unary();
+    }
     if (t && t.k === 'neg') {
       this.next();
       const tt = T[t.id];

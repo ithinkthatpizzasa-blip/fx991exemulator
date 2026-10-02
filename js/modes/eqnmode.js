@@ -84,6 +84,16 @@ function polyTemplate(deg, rel = '=0') {
   return s + rel;
 }
 
+// S⇔D on a result: exact (fraction / √ / π) form <-> decimal; returns the new disp
+function toggleSD(v, st, disp) {
+  if (!v) return disp;
+  const parts = v instanceof Complex ? [v.re, v.im] : [v];
+  if (!parts.some((p) => p instanceof Real && hasExactForm(p, st))) return disp;
+  const exactDefault = (st.io === 'MM' || st.io === 'LL') && !(st.io === 'LL' && v.ld);
+  const cur = disp.sd || (exactDefault ? 'exact' : 'dec');
+  return { ...disp, sd: cur === 'exact' ? 'dec' : 'exact' };
+}
+
 // ===================== Equation/Func =====================
 export class EqnMode {
   constructor(calc) {
@@ -132,6 +142,7 @@ export class EqnMode {
         return true;
       }
       if (action === 'UP') { if (this.si > 0) this.si--; return true; }
+      if (action === 'SD') { const s = this.sols[this.si]; s.disp = toggleSD(s.v, this.calc.fmt(), s.disp); return true; }
       if (action === 'STO') {
         const v = this.sols[this.si].v;
         this.calc.openOverlay(new StoPending(this.calc, (nm) => { this.calc.mem.vars[nm] = v; }));
@@ -154,7 +165,7 @@ export class EqnMode {
         const res = solveLinear(rows);
         if (res.status === 'none') { this.msg = 'No Solution'; this.screen = 'msg'; return; }
         if (res.status === 'inf') { this.msg = 'Infinite Solution'; this.screen = 'msg'; return; }
-        this.sols = res.sol.map((s, i) => ({ label: VARN[i] + '=', v: s }));
+        this.sols = res.sol.map((s, i) => ({ label: VARN[i] + '=', v: s, disp: {} }));
       } else {
         if (v[0].isZero()) throw new CalcError('Math');
         let roots = polyRoots(v);
@@ -168,14 +179,14 @@ export class EqnMode {
           if (uniq.some((u) => sameVal(u, r))) continue;
           uniq.push(r);
         }
-        this.sols = uniq.map((s, i) => ({ label: uniq.length > 1 ? `𝑥${'₁₂₃₄'[i]}=` : '𝑥=', v: s }));
+        this.sols = uniq.map((s, i) => ({ label: uniq.length > 1 ? `𝑥${'₁₂₃₄'[i]}=` : '𝑥=', v: s, disp: {} }));
         if (n === 2) {
           // vertex of y = ax²+bx+c
           const [a, b, c] = v;
           const xv = R.neg(R.div(b, R.mul(Real.int(2), a)));
           const yv = R.add(R.mul(a, R.mul(xv, xv)), R.add(R.mul(b, xv), c));
           const kind = a.sign() > 0 ? 'Minimum' : 'Maximum';
-          this.sols.push({ label: '𝑥=', v: xv, cap: kind }, { label: '𝑦=', v: yv, cap: kind });
+          this.sols.push({ label: '𝑥=', v: xv, cap: kind, disp: {} }, { label: '𝑦=', v: yv, cap: kind, disp: {} });
         }
       }
       this.si = 0;
@@ -189,10 +200,8 @@ export class EqnMode {
     if (this.screen === 'sol') {
       const s = this.sols[this.si];
       if (s.cap) bm.text(s.cap, 0, 0, 'S');
-      const st = this.calc.fmt();
-      if (this.kind === 'simul' && st.io === 'MM') st.io = 'MM';
       bm.text(s.label, 0, 30, 'L');
-      const lines = formatValueLines(s.v, { ...st, complexFmt: st.complexFmt }, {});
+      const lines = formatValueLines(s.v, this.calc.fmt(), s.disp);
       let y = 62;
       for (let k = lines.length - 1; k >= 0; k--) { const b = drawResult(bm, lines[k], y); y -= b.a + b.d + 1; }
       if (this.si > 0) bm.text('▲', 184, 0, 'S');
@@ -242,7 +251,7 @@ export class EqnMode {
     if (this.screen === 'msg') return this.msg;
     if (this.screen === 'sol') {
       const st = this.calc.fmt();
-      return this.sols.map((s) => toPlain([X(s.label)]) + formatValueLines(s.v, st, {}).map(toPlain).join(' ')).join(', ');
+      return this.sols.map((s) => toPlain([X(s.label)]) + formatValueLines(s.v, st, s.disp).map(toPlain).join(' ')).join(', ');
     }
     return null;
   }
@@ -469,7 +478,7 @@ export class RatioMode {
     if (this.screen === 'res') {
       if (action === 'EQ' || action === 'AC') { this.screen = 'editor'; return true; }
       if (action === 'STO') { this.calc.openOverlay(new StoPending(this.calc, (n) => { this.calc.mem.vars[n] = this.res; })); return true; }
-      if (action === 'SD') { this.toggleSD(); return true; }
+      if (action === 'SD') { this.disp = toggleSD(this.res, this.calc.fmt(), this.disp); return true; }
       return true;
     }
     let r;
@@ -485,14 +494,6 @@ export class RatioMode {
       } catch (e) { this.err = asCalcError(e); }
     }
     return true;
-  }
-  // S⇔D on the X= result: exact (fraction / √ / π) form <-> decimal
-  toggleSD() {
-    const v = this.res, st = this.calc.fmt();
-    if (!v || !hasExactForm(v, st)) return;
-    const exactDefault = (st.io === 'MM' || st.io === 'LL') && !(st.io === 'LL' && v.ld);
-    const cur = this.disp.sd || (exactDefault ? 'exact' : 'dec');
-    this.disp = { sd: cur === 'exact' ? 'dec' : 'exact' };
   }
   render(bm) {
     if (this.err) { errorScreen(bm, this.err); return; }
