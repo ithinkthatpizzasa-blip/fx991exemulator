@@ -256,7 +256,15 @@ export class TableMode {
     const row = this.rows[this.sel];
     const v = row ? [row.x, row.f, row.g][this.col] : null;
     if (v === 'ERROR') bm.text('ERROR', 150, 50, 'L');
-    else if (v) drawResult(bm, valueItems(v, this.calc), 62);
+    else if (v) drawResult(bm, this.cellValueItems(v), 62);
+  }
+  // the value of the selected cell is always shown on one line, whatever the
+  // Input/Output setting: MathI/MathO 3/2 is shown as 3⌟2, not a stacked fraction
+  cellValueItems(v) {
+    if (this.calc.setup.io !== 'MM') return valueItems(v, this.calc);
+    let lv = v;
+    if (v instanceof Real && v.ld) { lv = new Real(v.d, v.x); lv.dms = v.dms; }
+    return valueItems(lv, this.calc, 'LL');
   }
   status() {}
   onSetup(k) {

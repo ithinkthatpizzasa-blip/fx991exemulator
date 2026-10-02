@@ -28,7 +28,10 @@
 <div id="settings" hidden>
   <div class="sheet">
     <h2>App settings</h2>
-    <label><input type="checkbox" id="opt-vibrate"> Vibrate on key press</label>
+    <label class="slider" id="opt-vibrate-row">Key vibration
+      <input type="range" id="opt-vibrate" min="0" max="100" step="1" value="50" aria-describedby="opt-vibrate-val">
+      <output id="opt-vibrate-val" for="opt-vibrate">50%</output>
+    </label>
     <label><input type="checkbox" id="opt-sound"> Key click sound</label>
     <p class="hint">Keyboard: digits, + − * / ^ ( ) . , Enter = “=”, Backspace = DEL, Esc = AC, arrows = cursor pad, F1 = SHIFT, F2 = ALPHA.</p>
     <p class="ver">Version <span id="app-version"></span></p>

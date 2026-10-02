@@ -186,9 +186,10 @@ export class StatMode {
       return this.cs.key(action, key);
     }
     if (this.screen === 'list') {
-      const n = this.list.lines.length;
-      if (action === 'UP') this.listTop = Math.max(0, this.listTop - 1);
-      else if (action === 'DOWN') this.listTop = Math.min(Math.max(0, n - (this.list.title ? 5 : 6)), this.listTop + 1);
+      // like the real unit, ▲/▼ turn a whole page of the result list
+      const n = this.list.lines.length, vis = this.listRows();
+      if (action === 'UP') this.listTop = Math.max(0, this.listTop - vis);
+      else if (action === 'DOWN' && this.listTop + vis < n) this.listTop += vis;
       else if (action === 'AC') this.screen = this.prev;
       else if (action === 'OPTN') { this.screen = this.prev; return this.key(action, key); }
       return true;
@@ -285,11 +286,12 @@ export class StatMode {
       drawResult(bm, valueItems(v, this.calc), 62);
     }
   }
+  listRows() { return this.list.title ? 5 : 6; }
   renderList(bm) {
     const L = this.list;
     let y = 0;
     if (L.title) { bm.text(L.title, 0, 0, 'S'); y = 10; }
-    const vis = L.title ? 5 : 6;
+    const vis = this.listRows();
     const st = { ...this.calc.fmt(), io: 'MD', engSym: false };
     for (let i = 0; i < vis; i++) {
       const line = L.lines[this.listTop + i];
@@ -304,7 +306,7 @@ export class StatMode {
     const n = L.lines.length;
     if (n > vis) {
       const h = 60, seg = Math.max(6, Math.floor((h * vis) / n));
-      const pos = Math.round(((h - seg) * this.listTop) / Math.max(1, n - vis));
+      const pos = Math.min(h - seg, Math.round(((h - seg) * this.listTop) / Math.max(1, n - vis)));
       bm.fill(189, pos, 2, seg);
     }
   }

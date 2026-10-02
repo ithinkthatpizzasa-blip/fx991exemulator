@@ -10,7 +10,7 @@ import { Dec } from '../engine/decimal.js';
 import * as D from '../engine/decimal.js';
 import { CalcError, asCalcError } from '../engine/errors.js';
 import { ser, de } from '../engine/serial.js';
-import { formatValueLines, toPlain, mergeText } from '../engine/format.js';
+import { formatValueLines, toPlain, mergeText, hasExactForm } from '../engine/format.js';
 import { textWidth } from '../ui/bitmap.js';
 import { layoutList } from '../editor/render.js';
 
@@ -447,6 +447,7 @@ export class RatioMode {
     this.ed = null;
     this.screen = 'editor';
     this.res = null;
+    this.disp = {};
     this.err = null;
   }
   typeMenu() {
@@ -468,6 +469,7 @@ export class RatioMode {
     if (this.screen === 'res') {
       if (action === 'EQ' || action === 'AC') { this.screen = 'editor'; return true; }
       if (action === 'STO') { this.calc.openOverlay(new StoPending(this.calc, (n) => { this.calc.mem.vars[n] = this.res; })); return true; }
+      if (action === 'SD') { this.toggleSD(); return true; }
       return true;
     }
     let r;
@@ -478,17 +480,26 @@ export class RatioMode {
         if (a.isZero() || b.isZero() || c.isZero()) throw new CalcError('Math');
         this.res = this.type === 0 ? R.div(R.mul(a, c), b) : R.div(R.mul(b, c), a);
         this.calc.mem.ans = this.res;
+        this.disp = {};
         this.screen = 'res';
       } catch (e) { this.err = asCalcError(e); }
     }
     return true;
+  }
+  // S⇔D on the X= result: exact (fraction / √ / π) form <-> decimal
+  toggleSD() {
+    const v = this.res, st = this.calc.fmt();
+    if (!v || !hasExactForm(v, st)) return;
+    const exactDefault = (st.io === 'MM' || st.io === 'LL') && !(st.io === 'LL' && v.ld);
+    const cur = this.disp.sd || (exactDefault ? 'exact' : 'dec');
+    this.disp = { sd: cur === 'exact' ? 'dec' : 'exact' };
   }
   render(bm) {
     if (this.err) { errorScreen(bm, this.err); return; }
     if (this.type === null) return;
     if (this.screen === 'res') {
       bm.text('X=', 0, 30, 'L');
-      drawResult(bm, valueItems(this.res, this.calc), 62);
+      drawResult(bm, formatValueLines(this.res, this.calc.fmt(), this.disp)[0], 62);
       return;
     }
     // A : B = X : D   (cells drawn in small font)
@@ -517,7 +528,7 @@ export class RatioMode {
   }
   resultText() {
     if (this.err) return this.err.message;
-    if (this.screen === 'res') return toPlain(formatValueLines(this.res, this.calc.fmt(), {})[0]);
+    if (this.screen === 'res') return toPlain(formatValueLines(this.res, this.calc.fmt(), this.disp)[0]);
     return null;
   }
 }

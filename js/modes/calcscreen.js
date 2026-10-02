@@ -612,7 +612,7 @@ function drawPromptLine(bm, flow, name, y = 48) {
   const label = (name === 'x' ? '𝑥' : name === 'y' ? '𝑦' : name) + '=';
   const lw = textWidth(label, 'L') + 2;
   bm.fill(0, y - 1, 192, 15, 0);
-  bm.text(label, 0, y, 'L');
+  bm.text(label, 0, y - 1, 'L'); // same text top as the value / input drawn with base y + 10
   if (flow.ed) {
     const r = drawExpr(bm, flow.ed.root, { x: lw, width: 192 - lw, y, line: true, cursor: { path: [], idx: flow.ed.idx }, showCursor: calc.blink, scroll: flow.edScroll || 0, clipTop: y - 1, clipBottom: y + 13, arrows: false });
     flow.edScroll = r.scroll;

@@ -39,7 +39,24 @@ function flushSave() {
   if (pendingState) { writeJSON(STATE_KEY, pendingState); pendingState = null; }
 }
 
-const prefs = Object.assign({ vibrate: true, sound: false }, readJSON(PREFS_KEY) || {});
+// Key vibration strength 0-100 %. The Vibration API only takes a duration, so the
+// strength is the pulse length: 30 % = the original 8 ms pulse, 100 % = 27 ms.
+const VIBRATE_DEFAULT = 50;
+const VIBRATE_MS_PER_PCT = 8 / 30;
+const savedPrefs = readJSON(PREFS_KEY) || {};
+const prefs = Object.assign({ vibration: VIBRATE_DEFAULT, sound: false }, savedPrefs);
+if (typeof prefs.vibrate === 'boolean') {
+  // settings saved by the old on/off checkbox: off stays off, on gets the new default
+  if (!('vibration' in savedPrefs)) prefs.vibration = prefs.vibrate ? VIBRATE_DEFAULT : 0;
+  delete prefs.vibrate;
+}
+const vib = Number(prefs.vibration);
+prefs.vibration = Number.isFinite(vib) ? Math.min(100, Math.max(0, Math.round(vib))) : VIBRATE_DEFAULT;
+function vibrate() {
+  const pct = prefs.vibration;
+  if (pct <= 0 || !navigator.vibrate) return;
+  try { navigator.vibrate(Math.max(1, Math.round(pct * VIBRATE_MS_PER_PCT))); } catch (e) { /* ignore */ }
+}
 
 // ---------- UI ----------
 const face = document.getElementById('face');
@@ -80,7 +97,7 @@ function click() {
 
 function onKey(k) {
   lastActivity = Date.now();
-  if (prefs.vibrate && navigator.vibrate) { try { navigator.vibrate(8); } catch (e) { /* ignore */ } }
+  vibrate();
   if (prefs.sound) click();
   calc.press(k);
 }
@@ -126,16 +143,21 @@ document.addEventListener('dblclick', (e) => e.preventDefault());
 
 // ---------- settings sheet ----------
 const sheet = document.getElementById('settings');
-const optV = document.getElementById('opt-vibrate'), optS = document.getElementById('opt-sound');
+const optV = document.getElementById('opt-vibrate'), optVval = document.getElementById('opt-vibrate-val');
+const optS = document.getElementById('opt-sound');
 document.getElementById('app-version').textContent = APP_VERSION;
-optV.checked = !!prefs.vibrate;
+const showVibration = () => { optVval.textContent = prefs.vibration + '%'; };
+optV.value = String(prefs.vibration);
+showVibration();
 optS.checked = !!prefs.sound;
-optV.addEventListener('change', () => { prefs.vibrate = optV.checked; writeJSON(PREFS_KEY, prefs); });
+optV.addEventListener('input', () => { prefs.vibration = Number(optV.value); showVibration(); });
+// save and give a sample pulse at the chosen strength when the slider is released
+optV.addEventListener('change', () => { prefs.vibration = Number(optV.value); showVibration(); writeJSON(PREFS_KEY, prefs); vibrate(); });
 optS.addEventListener('change', () => { prefs.sound = optS.checked; writeJSON(PREFS_KEY, prefs); });
 document.getElementById('settings-btn').addEventListener('click', () => { sheet.hidden = false; });
 document.getElementById('opt-close').addEventListener('click', () => { sheet.hidden = true; });
 sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.hidden = true; });
-if (!navigator.vibrate) optV.parentElement.style.display = 'none';
+if (!navigator.vibrate) document.getElementById('opt-vibrate-row').style.display = 'none';
 
 // ---------- owner logo (set LOGO_SRC in js/brand.js) ----------
 if (LOGO_SRC) {

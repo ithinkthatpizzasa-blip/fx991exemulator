@@ -123,7 +123,10 @@ class P {
   }
   unary() {
     const t = this.peek();
-    if (t && this.opts.baseN && t.k === 'op' && t.id === '-') {
+    // the subtraction key where an operand is expected (start of the expression,
+    // after "(", an operator, a comma or inside a template slot) is a negative sign,
+    // as on the real unit: Abs(−1), √(−4), coefficient −2
+    if (t && t.k === 'op' && t.id === '-') {
       this.next();
       return { k: 'neg', a: this.unary(), ref: t.ref };
     }
@@ -216,7 +219,7 @@ class P {
     while (!this.eof()) {
       const t = this.peek();
       if (t.k !== 'num') {
-        if (seenE && expDigits === 0 && t.k === 'neg' && !T[t.id].base && s.endsWith('e')) { this.next(); s += '-'; last = t; continue; }
+        if (seenE && expDigits === 0 && (t.k === 'neg' ? !T[t.id].base : t.id === '-') && s.endsWith('e')) { this.next(); s += '-'; last = t; continue; }
         break;
       }
       this.next();
