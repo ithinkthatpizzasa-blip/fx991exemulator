@@ -13,9 +13,9 @@ import { textWidth } from '../ui/bitmap.js';
 
 const SUMS = [['Σ𝑥', 'sx'], ['Σ𝑥²', 'sx2'], ['Σ𝑦', 'sy'], ['Σ𝑦²', 'sy2'], ['Σ𝑥𝑦', 'sxy'], ['Σ𝑥³', 'sx3'], ['Σ𝑥²𝑦', 'sx2y'], ['Σ𝑥⁴', 'sx4']];
 // 1-/2-Variable Calc list, measured on a photo of the real unit: labels start in
-// column 38, the "=" signs in column 80 (10 dots after the widest label, max(𝑦)),
-// and each value starts right after its "=" (column 86)
-const VAR_LIST_X = 38;
+// column 37, the "=" signs in column 79 (10 dots after the widest label, max(𝑦)),
+// and each value starts right after its "=" (column 85)
+const VAR_LIST_X = 37;
 const VAR_LIST_GAP = 10;
 const VARS = [['𝑥̄', 'xbar'], ['σ²𝑥', 's2x'], ['σ𝑥', 'sigx'], ['s²𝑥', 'ss2x'], ['s𝑥', 'ssx'], ['𝑛', 'n'], ['𝑦̄', 'ybar'], ['σ²𝑦', 's2y'], ['σ𝑦', 'sigy'], ['s²𝑦', 'ss2y'], ['s𝑦', 'ssy']];
 
@@ -328,10 +328,10 @@ export class StatMode {
         const pos = Math.min(h - seg, Math.round(((h - seg) * this.listTop) / Math.max(1, n - vis)));
         bm.fill(189, pos, 2, seg);
       } else {
-        // as on the real unit: a 4-dot thumb with rounded ends at the right edge,
-        // on a track starting at row 1 (rows 1-14 on the first page of 2-Variable Calc)
-        const h = 57, seg = Math.max(6, Math.floor((h * vis) / n));
-        const pos = 1 + Math.min(h - seg, Math.round(((h - seg) * this.listTop) / Math.max(1, n - vis)));
+        // as on the real unit: a 4-dot thumb with rounded ends at the right edge
+        // (rows 0-14 on the first page of 2-Variable Calc)
+        const h = 60, seg = Math.max(6, Math.floor((h * vis) / n));
+        const pos = Math.min(h - seg, Math.round(((h - seg) * this.listTop) / Math.max(1, n - vis)));
         bm.fill(188, pos + 1, 4, seg - 2);
         bm.fill(189, pos, 2, 1);
         bm.fill(189, pos + seg - 1, 2, 1);
