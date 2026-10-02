@@ -108,15 +108,28 @@ html, body {
   width: calc(var(--u) * 260);
   height: calc(var(--u) * 168);
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
-  border: calc(var(--u) * 3) dashed rgba(255,255,255,.16);
-  border-radius: calc(var(--u) * 14);
-  color: rgba(255,255,255,.32);
-  font-weight: 700;
-  font-size: calc(var(--u) * 40);
-  letter-spacing: calc(var(--u) * 6);
+  color: rgba(255,255,255,.9);
   box-sizing: border-box;
+}
+.brand-name {
+  font-weight: 800;
+  font-size: calc(var(--u) * 64);
+  letter-spacing: calc(var(--u) * 2);
+  line-height: 1.1;
+}
+.brand-model {
+  font-weight: 700;
+  font-size: calc(var(--u) * 38);
+  line-height: 1.2;
+}
+.brand-line {
+  font-weight: 700;
+  font-size: calc(var(--u) * 26);
+  letter-spacing: calc(var(--u) * 7);
+  color: rgba(255,255,255,.6);
 }
 .brand img { max-width: 100%; max-height: 100%; }
 .brand.has-logo { border: none; }
