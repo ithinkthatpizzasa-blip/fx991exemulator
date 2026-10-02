@@ -2,13 +2,14 @@
 
 ## 1. Manual-derived test suite
 
-`node --test tests/*.test.js` — **205 tests, 205 passing (100 %)**.
+`node --test tests/*.test.js` — **229 tests, 229 passing (100 %)**.
 
 | File | What it covers |
 |---|---|
 | `tests/manual.test.js` | 191 tests: every worked example in the fx-991EX user manual, typed as the manual's key sequence and compared with the result the manual prints (pages 6–44) |
 | `tests/sanity.test.js` | the spec's sanity checks (§7.2), persistence across restarts, corrupted / blocked / full storage, ON/OFF, RESET, IO change, and a randomised "press any key in any mode" robustness test |
 | `tests/engine.test.js` | the BigInt decimal engine (rounding, transcendental functions, speed) |
+| `tests/fixes.test.js` | 24 regression tests for differences found against the real unit: the [−] key as a negative sign (Abs(−1), √(−4) in Complex mode, negative Equation/Inequality coefficients), S⇔D in Ratio mode, page-wise ▲/▼ in the statistics result list, the one-line cell value in Table mode, the 9×14 LCD font and the 𝑥 / × glyphs |
 
 Examples by manual section (all passing): setup & number formats (p6–7), input rules and
 priority (p8–9), natural input, INS, UNDO (p9–10), S⇔D, fractions, percent, DMS,
@@ -69,7 +70,10 @@ size were compared during development (the reference photo itself is not publish
 Intentional differences:
 
 - no CASIO / fx-991EX / CLASSWIZ printing — replaced by the owner's "LOGO" slot (spec §4.6)
-- LCD fonts and MENU pictograms are original pixel drawings in the same style (Casio's bitmaps are not copied)
+- LCD fonts and MENU pictograms are original pixel drawings in the same style (Casio's bitmaps are not copied).
+  The large font uses 9×14-dot character cells (digits and capitals 7 dots wide and 11 dots tall,
+  9-dot advance); the variable 𝑥 is drawn as a curly italic and the multiplication sign × as a small
+  5×5 cross on the operator axis so the two cannot be confused
 - D-pad, metal key finish and panel texture are CSS/SVG approximations of the photo
 
 ## 5. Device tests (to be done by the owner on real hardware)
@@ -100,3 +104,6 @@ Please confirm on the real devices:
 6. Restarting the app restores the screen you left (so an OS kill or an update never loses work);
    only an explicit OFF (SHIFT AC) → ON clears the history, as on the real unit.
 7. Solar-cell indicator and battery behaviour are not applicable.
+8. **Normal CD / Inverse Normal** results can differ from the fx-991EX after about the 7th decimal
+   place. Checked against a Casio fx-CG50, which shows the same digits as this app, so the app's
+   values are kept (the fx-991EX's own approximation is the less precise one).

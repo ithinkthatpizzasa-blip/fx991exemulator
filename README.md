@@ -28,8 +28,8 @@ It opens full-screen in its own window and works in airplane mode after the firs
 `s c t` → sin cos tan, `l` → ln, `g` → log, `r` → √, `x` → 𝑥, `a` → Ans, `e` → ×10ˣ, `p` → π,
 `!` → x!, `%` → %, `m` → MENU, `o` → OPTN, `d` → S⇔D, `Home` → ON.
 
-**App settings** (⚙ in the top-right corner): key vibration (on by default where supported) and key
-click sound (off by default).
+**App settings** (⚙ in the top-right corner): key vibration strength slider, 0–100 % (50 % by default,
+shown only where the device supports vibration; 0 % turns it off) and key click sound (off by default).
 
 Everything the calculator stores (setup, variables A–F/M/x/y, Ans, matrices, vectors, statistics
 data, table functions, equation coefficients, the current screen and history) is saved in
@@ -80,7 +80,7 @@ node --test tests/*.test.js        # run the test suite  (or: npm test)
 node tools/pwa-check.mjs           # Chromium: installability, precache, offline, auto-update
 node tools/screenshot.mjs out.png 412 892 k1 add k2 eq   # screenshot after some key presses
 node tools/lcdshot.mjs out.png '{}' 'MENU' 'SHIFT MENU'  # render LCD screens headless
-node tools/build-font.mjs          # rebuild js/ui/fontdata.js (LCD fonts)
+node tools/build-font.mjs          # rebuild js/ui/fontdata.js from tools/font-large.txt + tools/font-small.txt
 ```
 
 ### Releasing a new version (cache name bump)
@@ -124,6 +124,5 @@ works from that sub-path. Netlify or Cloudflare Pages also work: publish the sam
 ## Credits and licences
 
 - Key legend font: **Saira Semi Condensed** © The Saira Project Authors, SIL Open Font License 1.1 (`fonts/OFL.txt`).
-- Large LCD font: glyphs derived from **GNU Unifont** (SIL OFL 1.1 / GPLv2+ with font embedding exception).
 - Italic 𝑥 𝑦 𝑒 𝑖 key glyph outlines from **Liberation Serif Bold Italic** (SIL OFL 1.1).
-- Small LCD font, icons, MENU pictograms and all code: written for this project.
+- LCD fonts (large 9×14 and small), icons, MENU pictograms and all code: written for this project.
