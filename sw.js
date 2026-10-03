@@ -1,7 +1,7 @@
 // Service worker: precaches the whole app (cache-first, works fully offline)
 // and updates itself automatically. The file list and version below are
 // maintained by `node tools/build-sw.mjs` / `node tools/bump-version.mjs`.
-const VERSION = '1.0.2';
+const VERSION = '1.0.3';
 const CACHE = 'calc-v' + VERSION;
 const PRECACHE = [
   /* BEGIN FILES */
@@ -49,6 +49,7 @@ const PRECACHE = [
   './js/ui/lcdview.js',
   './js/ui/mainmenu.js',
   './js/ui/overlays.js',
+  './js/ui/qr.js',
   './js/version.js',
   './fonts/saira-semicondensed-600.woff2',
   './fonts/saira-semicondensed-700.woff2',
