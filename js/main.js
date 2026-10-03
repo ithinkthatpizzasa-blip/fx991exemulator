@@ -79,19 +79,43 @@ function draw() {
 calc = new Calculator({ storage, async: true, onChange: schedule });
 window.__calc = calc; // handy for debugging in the console
 
-let audioCtx = null;
+let audioCtx = null, clickBuf = null;
+// A soft plastic "tick" + low "thock" (like a quiet rubber-dome keypad),
+// synthesised once into a buffer instead of a raw oscillator beep.
+function makeClickBuffer(ctx) {
+  const sr = ctx.sampleRate, n = Math.floor(sr * 0.05);
+  const buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0);
+  const k = (fc) => 1 - Math.exp((-2 * Math.PI * fc) / sr);
+  const a1 = k(5000), a2 = k(900);
+  let seed = 12345, lp1 = 0, lp2 = 0, peak = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / sr;
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    lp1 += a1 * ((seed / 0x3fffffff - 1) - lp1);
+    lp2 += a2 * (lp1 - lp2);
+    const band = lp1 - lp2; // band-passed noise: the plastic contact
+    const t2 = t - 0.011; // key bottoming out a moment later
+    let v = band * Math.exp(-t / 0.004) + (t2 > 0 ? 0.45 * band * Math.exp(-t2 / 0.003) : 0);
+    v += 0.3 * Math.sin(2 * Math.PI * 170 * t) * Math.exp(-t / 0.012); // body
+    v += 0.15 * Math.sin(2 * Math.PI * 430 * t) * Math.exp(-t / 0.005);
+    v *= Math.min(1, t / 0.0003); // no pop at the start
+    d[i] = v;
+    peak = Math.max(peak, Math.abs(v));
+  }
+  for (let i = 0; i < n; i++) d[i] /= peak;
+  return buf;
+}
 function click() {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const t = audioCtx.currentTime;
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = 'square';
-    o.frequency.value = 1900;
-    g.gain.setValueAtTime(0.05, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
-    o.connect(g).connect(audioCtx.destination);
-    o.start(t);
-    o.stop(t + 0.035);
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (!clickBuf) clickBuf = makeClickBuffer(audioCtx);
+    const src = audioCtx.createBufferSource(), g = audioCtx.createGain();
+    src.buffer = clickBuf;
+    src.playbackRate.value = 0.92 + Math.random() * 0.16; // slight variation, less robotic
+    g.gain.value = 0.35;
+    src.connect(g).connect(audioCtx.destination);
+    src.start();
   } catch (e) { /* audio unsupported */ }
 }
 

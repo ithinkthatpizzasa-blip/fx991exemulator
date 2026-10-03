@@ -2,6 +2,7 @@
 // the variable RECALL screen, STO standby and the contrast screen.
 import { MENU_KEYS, MENU_LABELS, VAR_KEYS } from '../keymap.js';
 import { textWidth } from './bitmap.js';
+import { qrEncode } from './qr.js';
 
 export class Overlay {
   constructor(calc) { this.calc = calc; }
@@ -157,6 +158,30 @@ export class Message extends Overlay {
         if (l.inv) bm.invert(0, i * lh, 192, lh);
       } else bm.text(l, 0, i * lh, this.font);
     });
+  }
+}
+
+// SHIFT OPTN (QR): a scannable code linking to the app's GitHub page.
+// Upper case keeps it in alphanumeric mode, so it fits version 3 (29x29) at
+// 2 dots per module; GitHub treats owner/repo names case-insensitively.
+export const QR_URL = 'HTTPS://GITHUB.COM/ITHINKTHATPIZZASA-BLIP/FX991EXEMULATOR';
+let qrMatrix = null;
+export class QrScreen extends Overlay {
+  key(key, action) {
+    if (action === 'ON' || action === 'OFF') return false;
+    if (action === 'AC') this.close();
+    return true;
+  }
+  render(bm) {
+    bm.clear();
+    if (!qrMatrix) qrMatrix = qrEncode(QR_URL);
+    const s = 2, n = qrMatrix.length, y0 = Math.floor((63 - n * s) / 2);
+    qrMatrix.forEach((row, y) => row.forEach((v, x) => { if (v) bm.fill(2 + x * s, y0 + y * s, s, s); }));
+    const x = 2 + n * s + 8;
+    bm.text('Scan for the', x, 0);
+    bm.text('app\'s GitHub', x, 15);
+    bm.text('page.', x, 30);
+    bm.text('[AC] :Exit', x, 48);
   }
 }
 

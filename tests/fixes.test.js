@@ -167,3 +167,16 @@ test('cursor is visible at the leftmost position', () => {
   assert.ok(cursorAtLeftEdge({}, '▭ ◀') >= 10, 'before a fraction');
   assert.ok(cursorAtLeftEdge({ io: 'LL' }, '1 2 3 ◀ ◀ ◀') >= 10, 'Line IO');
 });
+
+test('SHIFT OPTN shows a QR code for the GitHub page; AC exits', async () => {
+  const { qrEncode } = await import('../js/ui/qr.js');
+  const { QR_URL } = await import('../js/ui/overlays.js');
+  const m = qrEncode(QR_URL);
+  assert.equal(m.length, 29); // version 3: 2 dots per module fits the 63-dot LCD
+  const c = newCalc();
+  press(c, 'SHIFT OPTN');
+  assert.equal(c.top.constructor.name, 'QrScreen');
+  c.render();
+  press(c, 'AC');
+  assert.equal(c.top, null);
+});

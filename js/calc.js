@@ -2,7 +2,7 @@
 // RESET, RECALL), memory, persistence, job runner and mode dispatch.
 import { Bitmap } from './ui/bitmap.js';
 import { resolve } from './keymap.js';
-import { Menu, Prompt, Message, Contrast, Overlay } from './ui/overlays.js';
+import { Menu, Prompt, Message, Contrast, Overlay, QrScreen } from './ui/overlays.js';
 import { MainMenu, MODES } from './ui/mainmenu.js';
 import { runSync, runAsync } from './engine/evaluator.js';
 import { asCalcError, CalcError } from './engine/errors.js';
@@ -232,7 +232,7 @@ export class Calculator {
       case 'MENU': return this.openOverlay(new MainMenu(this));
       case 'SETUP': return this.openOverlay(this.setupMenu());
       case 'RESET': return this.openOverlay(this.resetMenu());
-      case 'QR': return this.openOverlay(new Message(this, ['QR Code', 'not available', 'in this app.', '[AC] :Exit'], {}));
+      case 'QR': return this.openOverlay(new QrScreen(this));
       default: break;
     }
     if (action == null) return;
