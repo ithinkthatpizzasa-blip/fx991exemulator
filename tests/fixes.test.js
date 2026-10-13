@@ -180,3 +180,25 @@ test('SHIFT OPTN shows a QR code for the GitHub page; AC exits', async () => {
   press(c, 'AC');
   assert.equal(c.top, null);
 });
+
+// ---------- tall (stacked) fractions ----------
+const inked = (c, x0, x1, y0, y1) => {
+  let n = 0;
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) n += c.bm.get(x, y) ? 1 : 0;
+  return n;
+};
+test('a fraction in the denominator is not cut off once the answer is shown', () => {
+  const c = newCalc();
+  press(c, '▭ 400 × 10 x^ 6 ▼ ▭ 10 ▼ 3 ▶ × 0.023 =');
+  c.render();
+  // the inner denominator "3" sits below row 30, left of the answer
+  assert.ok(inked(c, 0, 40, 31, 45) > 5);
+});
+test('the cursor stays on screen while typing a fraction taller than the display', () => {
+  const c = newCalc();
+  press(c, '▭ ▭ 1 ▼ 2 ▶ ▼ ▭ ▭ 1 ▼ ▭ 2 ▼ 3 ▶ ▼ ▭ 4 ▼ ▭ 5 ▼ 7');
+  c.blink = true;
+  c.render();
+  assert.ok(c.mode.cs.vscroll > 0, 'scrolled down to the cursor');
+  assert.ok(inked(c, 0, 60, 50, 62) > 5, 'the 7 being typed is visible');
+});

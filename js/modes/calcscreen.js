@@ -41,8 +41,20 @@ export function drawExpr(bm, items, opts) {
   }
   if (box.w - scroll < vw - 8) scroll = Math.max(0, box.w - vw + 8);
   if (!box.cursor && !opts.keepScroll) scroll = 0;
-  const base = (opts.y || 0) + box.a - 1;
-  bm.setClip(x0 - pad, opts.clipTop ?? 0, x0 + vw - 1, opts.clipBottom ?? 62);
+  const clipTop = opts.clipTop ?? 0, clipBottom = opts.clipBottom ?? 62;
+  // vertical scroll (opt-in): an expression taller than the area (stacked
+  // fractions) follows the cursor up and down instead of losing it below
+  let vscroll = 0;
+  if (opts.vscroll != null && box.cursor) {
+    vscroll = opts.vscroll;
+    const cb = (opts.y || 0) + box.a - 1 + (box.cursor.dy || 0);
+    const ctop = cb - (box.cursor.size === 'S' ? 6 : 10) - 1, cbot = cb + 2;
+    if (cbot - vscroll > clipBottom) vscroll = cbot - clipBottom;
+    if (ctop - vscroll < clipTop) vscroll = ctop - clipTop;
+    vscroll = Math.max(0, Math.min(vscroll, (opts.y || 0) + box.a + box.d - 1 - clipBottom));
+  }
+  const base = (opts.y || 0) + box.a - 1 - vscroll;
+  bm.setClip(x0 - pad, clipTop, x0 + vw - 1, clipBottom);
   box.draw(bm, x0 - scroll, base);
   if (box.cursor && opts.showCursor) drawCursor(bm, x0 - scroll, base, box.cursor, opts.cursorShape || 'bar');
   bm.noClip();
@@ -50,7 +62,7 @@ export function drawExpr(bm, items, opts) {
     if (scroll > 0) bm.text('◁', x0 - pad, base - 6, 'S');
     if (box.w - scroll > vw) bm.text('▷', x0 + vw - 4, base - 6, 'S');
   }
-  return { box, scroll, base };
+  return { box, scroll, vscroll, base };
 }
 
 // Draw result items right aligned with bottom at yBottom
@@ -106,6 +118,7 @@ export class CalcScreen {
     this.err = null;
     this.flow = null;
     this.scroll = 0;
+    this.vscroll = 0;
     this.rscroll = 0;
   }
 
@@ -511,11 +524,9 @@ export class CalcScreen {
   renderMath(bm) {
     const ed = this.editor;
     const editing = this.state === 'input' || this.state === 'busy';
-    const r = drawExpr(bm, ed.root, {
-      y: 0, cursor: editing ? { path: ed.path, idx: ed.idx } : null, showCursor: editing && this.calc.blink && this.state !== 'busy',
-      scroll: this.scroll, clipBottom: this.state === 'result' ? 30 : 62, cursorShape: this.cursorShape(),
-    });
-    this.scroll = editing ? r.scroll : 0;
+    // the answer is drawn first so the expression can use every row above it
+    // (a fixed cut-off chopped stacked fractions in half)
+    let clipBottom = 62;
     if (this.state === 'result' && this.res) {
       const lines = this.resultLines(this.res.value, this.res.disp);
       let y = 62;
@@ -523,7 +534,14 @@ export class CalcScreen {
         const b = drawResult(bm, lines[k], y, { scroll: this.rscroll });
         y -= b.a + b.d + 1;
       }
-    }
+      clipBottom = y;
+    } else if (this.state === 'result') clipBottom = 30;
+    const r = drawExpr(bm, ed.root, {
+      y: 0, cursor: editing ? { path: ed.path, idx: ed.idx } : null, showCursor: editing && this.calc.blink && this.state !== 'busy',
+      scroll: this.scroll, vscroll: editing ? this.vscroll || 0 : null, clipBottom, cursorShape: this.cursorShape(),
+    });
+    this.scroll = editing ? r.scroll : 0;
+    this.vscroll = editing ? r.vscroll : 0;
   }
 
   renderLine(bm) {
