@@ -202,3 +202,17 @@ test('the cursor stays on screen while typing a fraction taller than the display
   assert.ok(c.mode.cs.vscroll > 0, 'scrolled down to the cursor');
   assert.ok(inked(c, 0, 60, 50, 62) > 5, 'the 7 being typed is visible');
 });
+
+// ---------- Matrix / Vector cell input is a single line ----------
+for (const mode of ['matrix', 'vector']) {
+  test(`${mode}: the cell input line is linear even in MathI (no stacked fractions)`, () => {
+    const c = newCalc({ mode });
+    press(c, mode === 'matrix' ? '1 1 1 1 ▭ 2' : '1 2 1 ▭ 2');
+    const inp = c.mode.input;
+    assert.ok(inp, 'a cell is being edited');
+    assert.equal(inp.line, true);
+    assert.ok(inp.ed.root.every((it) => !it.s), 'no 2D templates in the input');
+    press(c, '=');
+    assert.equal(c.mode.cell(c.mode.get('A'), 0, 0).toNumber(), 0.5);
+  });
+}

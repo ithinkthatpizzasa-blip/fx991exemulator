@@ -187,7 +187,7 @@ class ArrayMode {
       return true;
     }
     if (this.screen === 'edit' && (action.startsWith('t:') || action.startsWith('p:'))) {
-      this.input = new ValueInput(this.calc);
+      this.input = new ValueInput(this.calc, { line: true });
       this.input.key(action);
       return true;
     }
