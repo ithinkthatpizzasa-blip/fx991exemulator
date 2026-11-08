@@ -623,6 +623,14 @@ export class CalcScreen {
     this.editor.line = this.line;
     this.state = 'input';
   }
+  // leave a CALC/SOLVE flow and put its expression back in the editor
+  editFlowItems(items, cursorAtEnd = true) {
+    this.flow = null;
+    this.editor.setItems(items, cursorAtEnd);
+    this.editor.line = this.line;
+    this.state = 'input';
+    this.hpos = -1;
+  }
   onCancel() {
     if (this.flow && this.flow.onCancel) { this.flow.onCancel(); return; }
     this.state = 'input';
@@ -799,6 +807,9 @@ class SolveFlow {
     if (this.phase === 'result') {
       if (action === 'EQ') { this.phase = 'prompt'; return true; }
       if (action === 'AC') { this.s.exitFlow(); return true; }
+      // ◀ / ▶ leave the solution and return to the equation for editing,
+      // with the cursor at its end (◀) or start (▶), as on the real unit
+      if (action === 'LEFT' || action === 'RIGHT') { this.s.editFlowItems(this.items, action === 'LEFT'); return true; }
       return true;
     }
     if (action.startsWith('t:') || action.startsWith('p:')) {
@@ -855,6 +866,7 @@ class SolveFlow {
     calc.runJob(newton(f, x0), (r) => {
       if (r.cont) { self.x = r.x; self.phase = 'continue'; calc.mem.vars[name] = R.fromDec(r.x); return; }
       calc.mem.vars[name] = r.value;
+      calc.mem.ans = r.value; // a found solution is also stored in Ans
       self.sol = r.value;
       self.lr = r.lr;
       self.solvedVar = name;

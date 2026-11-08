@@ -222,6 +222,30 @@ ex('p18 Line IO shows a and bi on separate lines', '1 + 2 ENG =', '1 | +2𝑖', 
 // ---------- p.19 CALC / SOLVE ----------
 ex('p19 CALC 3A+B with A=5, B=10 → 25', '3 ALPHA (−) + ALPHA DMS CALC 5 = 10 = =', '25');
 ex('p19 SOLVE x²+B=0, B=−2 → x=1.414213562', 'ALPHA ) x² + ALPHA DMS ALPHA CALC 0 SHIFT CALC 1 = (−) 2 = ▲ =', 'x=1.414213562, L-R=0');
+test('SOLVE stores the solution in Ans', () => {
+  const c = newCalc();
+  press(c, 'ALPHA ) x² + ALPHA DMS ALPHA CALC 0 SHIFT CALC 1 = (−) 2 = ▲ = AC Ans =');
+  assert.equal(result(c), '1.414213562');
+});
+test('SOLVE result then ▶ returns to the equation with the cursor at its start', () => {
+  const c = newCalc();
+  press(c, 'ALPHA ) x² + ALPHA DMS ALPHA CALC 0 SHIFT CALC 1 = (−) 2 = ▲ = ▶');
+  const ed = c.mode.cs.editor;
+  assert.deepEqual([c.mode.cs.state, ed.path.length, ed.idx], ['input', 0, 0]);
+});
+test('SOLVE result then ◀ returns to the equation with the cursor at its end', () => {
+  const c = newCalc();
+  press(c, 'ALPHA ) x² + ALPHA DMS ALPHA CALC 0 SHIFT CALC 1 = (−) 2 = ▲ =');
+  const before = c.mode.cs.flow.items.length;
+  press(c, '◀');
+  const cs = c.mode.cs;
+  assert.equal(cs.flow, null);
+  assert.equal(cs.state, 'input');
+  assert.equal(cs.editor.root.length, before);
+  assert.deepEqual([cs.editor.path.length, cs.editor.idx], [0, before]);
+  press(c, 'DEL 3 SHIFT CALC ='); // now x²+B=3 with B=−2
+  assert.equal(result(c), 'x=2.236067977, L-R=0');
+});
 test('p38 SOLVE without a variable → Variable ERROR', () => assert.equal(run('2 + 3 SHIFT CALC'), 'Variable ERROR'));
 
 // ---------- p.20-23 Statistics ----------
